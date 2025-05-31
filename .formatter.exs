@@ -8,7 +8,8 @@
     :reactor,
     :ecto,
     :ecto_sql,
-    :phoenix
+    :phoenix,
+    :seed_factory
   ],
   subdirectories: ["priv/*/migrations"],
   plugins: [Spark.Formatter, Phoenix.LiveView.HTMLFormatter],
