@@ -126,6 +126,13 @@ config :smalltalk, SmalltalkWeb.Endpoint,
 #     ],
 #
 
+if config_env() == :prod do
+  config :smalltalk,
+    token_signing_secret:
+      System.get_env("TOKEN_SIGNING_SECRET") ||
+        raise("Missing environment variable `TOKEN_SIGNING_SECRET`!")
+end
+
 # ## Configuring the mailer
 #
 # In production you need to configure the mailer to use a different adapter.
