@@ -24,7 +24,8 @@ defmodule SmalltalkWeb.Router do
   scope "/", SmalltalkWeb do
     pipe_through :browser
 
-    ash_authentication_live_session :authenticated_routes do
+    ash_authentication_live_session :authenticated_routes,
+      on_mount: [{SmalltalkWeb.LiveUserAuth, :live_user_required}] do
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:
@@ -35,13 +36,26 @@ defmodule SmalltalkWeb.Router do
       #
       # If an authenticated user must *not* be present:
       # on_mount {SmalltalkWeb.LiveUserAuth, :live_no_user}
+
+      live "/", HomeLive, :home
+
+      live "/account", AccountLive
+      live "/account/contact", AccountLive, :contact
+      live "/account/subscription", AccountLive, :subscription
+      live "/profile", ProfileLive
+      live "/profile/image", ProfileLive, :image
+      live "/profile/bio", ProfileLive, :bio
+      live "/friends", FriendsLive
+      live "/friends/current", FriendsLive, :current
+      live "/friends/search", FriendsLive, :search
     end
   end
 
   scope "/", SmalltalkWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    # get "/", PageController, :home
+
     auth_routes AuthController, Smalltalk.Accounts.User, path: "/auth"
     sign_out_route AuthController
 

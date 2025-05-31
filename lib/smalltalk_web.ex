@@ -84,12 +84,26 @@ defmodule SmalltalkWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components
-      import SmalltalkWeb.CoreComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
-      alias SmalltalkWeb.Layouts
+      alias SmalltalkLayouts.Layouts
+
+      alias SmalltalkUi.{
+        Button,
+        Containers,
+        Dock,
+        Drawer,
+        Flash,
+        Forms,
+        Menu,
+        Modal,
+        Icon,
+        JsCommands,
+        Stepper,
+        Table,
+        Theme
+      }
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

@@ -36,7 +36,7 @@ case Mix.env() do
         patterns: [
           ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
           ~r"priv/gettext/.*(po)$",
-          ~r"lib/smalltalk_web/(?:controllers|live|components|router)/?.*\.(ex|heex)$"
+          ~r"lib/smalltalk_(web|ui|layouts)/.*(ex|heex)$"
         ]
       ],
       code_reloader: true,
