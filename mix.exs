@@ -34,10 +34,13 @@ defmodule Smalltalk.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
+      {:picosat_elixir, "~> 0.2"},
+      {:ash_authentication_phoenix, "~> 2.0"},
       {:sourceror, "~> 1.8", only: [:dev, :test]},
       {:ash_postgres, "~> 2.0"},
-      {:ash_phoenix, "~> 2.0"},
       {:ash, "~> 3.0"},
+      {:ash_authentication, "~> 4.0"},
       {:igniter, "~> 0.5", only: [:dev, :test]},
       {:phoenix, "~> 1.8.0-rc.3", override: true},
       {:phoenix_ecto, "~> 4.5"},
@@ -64,7 +67,12 @@ defmodule Smalltalk.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:dotenvy, "~> 1.1.0"},
+      {:mix_test_interactive, "~> 4.3.0", only: [:dev], runtime: false},
+      {:seed_factory, "~> 0.6.0", only: [:dev, :test]},
+      {:faker, "0.19.0-alpha.1", only: [:test]},
+      {:assertions, "~> 0.20", only: :test}
     ]
   end
 

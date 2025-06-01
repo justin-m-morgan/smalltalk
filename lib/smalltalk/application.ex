@@ -15,7 +15,8 @@ defmodule Smalltalk.Application do
       # Start a worker by calling: Smalltalk.Worker.start_link(arg)
       # {Smalltalk.Worker, arg},
       # Start to serve requests, typically the last entry
-      SmalltalkWeb.Endpoint
+      SmalltalkWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :smalltalk]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -2,9 +2,12 @@
    https://tailwindcss.com/docs/configuration */
 
 @import "tailwindcss" source(none);
+@source "../../deps/ash_authentication_phoenix";
 @source "../css";
 @source "../js";
 @source "../../lib/smalltalk_web";
+@source "../../lib/smalltalk_ui";
+@source "../../lib/smalltalk_layouts";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */

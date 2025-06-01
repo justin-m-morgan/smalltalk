@@ -1,4 +1,4 @@
-<Layouts.flash_group flash={@flash} />
+<Flash.flash_group flash={@flash} />
 <div class="left-[40rem] fixed inset-y-0 right-0 z-0 hidden lg:block xl:left-[50rem]">
   <svg
     viewBox="0 0 1480 957"
@@ -76,11 +76,7 @@
               />
             </svg>
           </button>
-          <code
-            id="setup-elixir"
-            class="block px-1 overflow-x-auto whitespace-pre"
-            phx-no-format
-          >export PATH=$HOME/.local/share/mise/installs/erlang/27.2.1/erts-15.2.1/bin:$PATH
+          <code id="setup-elixir" class="block px-1 overflow-x-auto whitespace-pre" phx-no-format>export PATH=$HOME/.local/share/mise/installs/erlang/27.2.1/erts-15.2.1/bin:$PATH
 export PATH=$HOME/.local/share/mise/installs/elixir/1.18.2-otp-27/bin:$PATH</code>
         </div>
       </div>
@@ -102,7 +98,7 @@ export PATH=$HOME/.local/share/mise/installs/elixir/1.18.2-otp-27/bin:$PATH</cod
           v{Application.spec(:phoenix, :vsn)}
         </small>
       </h1>
-      <Layouts.theme_toggle />
+      <Theme.theme_toggle />
     </div>
 
     <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-balance">
