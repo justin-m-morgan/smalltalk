@@ -68,7 +68,11 @@ defmodule Smalltalk.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:dotenvy, "~> 1.1.0"}
+      {:dotenvy, "~> 1.1.0"},
+      {:mix_test_interactive, "~> 4.3.0", only: [:dev], runtime: false},
+      {:seed_factory, "~> 0.6.0", only: [:dev, :test]},
+      {:faker, "0.19.0-alpha.1", only: [:test]},
+      {:assertions, "~> 0.20", only: :test}
     ]
   end
 

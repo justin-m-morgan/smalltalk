@@ -7,6 +7,8 @@ config :spark,
       section_order: [
         :postgres,
         :resource,
+        :authentication,
+        :tokens,
         :code_interface,
         :actions,
         :policies,

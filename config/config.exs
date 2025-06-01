@@ -7,8 +7,6 @@
 # General application configuration
 import Config
 
-config :smalltalk, ash_domains: [Smalltalk.Accounts]
-config :spark, formatter: ["Ash.Resource": [section_order: [:authentication, :tokens]]]
 require Logger
 
 File.ls!("config/apps")

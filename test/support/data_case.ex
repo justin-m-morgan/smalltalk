@@ -24,6 +24,7 @@ defmodule Smalltalk.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Smalltalk.DataCase
+      import Assertions
     end
   end
 
@@ -54,5 +55,38 @@ defmodule Smalltalk.DataCase do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+  end
+
+  @doc """
+  Checks Ash errors for containing a message.
+
+  Helpful for fuzzy searching error responses. Avoids over-concern with meticulously creating
+  sample date to test for specific error messages.
+  """
+  def errors_contain?({:ok, value}, _msg),
+    do:
+      raise("""
+      Not an error value
+
+      #{inspect(value)}
+      """)
+
+  def errors_contain?({:error, ash_error}, msg), do: errors_contain?(ash_error, msg)
+
+  def errors_contain?(ash_error, msg) do
+    ash_error
+    |> Ash.Error.error_descriptions()
+    |> String.contains?(msg) ||
+      raise """
+      Expected Message Not Found
+
+      Expected Message:
+
+      #{msg}
+
+      Errors:
+
+      #{Ash.Error.error_descriptions(ash_error)}
+      """
   end
 end
