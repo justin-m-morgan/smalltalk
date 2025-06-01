@@ -22,8 +22,6 @@ defmodule Smalltalk.Conversations.Profile do
       upsert_identity :unique_talker
 
       accept [:first_name, :last_name, :nickname]
-
-      change relate_actor(:talker)
     end
   end
 

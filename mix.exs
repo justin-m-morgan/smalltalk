@@ -72,7 +72,8 @@ defmodule Smalltalk.MixProject do
       {:mix_test_interactive, "~> 4.3.0", only: [:dev], runtime: false},
       {:seed_factory, "~> 0.6.0", only: [:dev, :test]},
       {:faker, "0.19.0-alpha.1", only: [:test]},
-      {:assertions, "~> 0.20", only: :test}
+      {:assertions, "~> 0.20", only: :test},
+      {:live_stream_async, "~> 0.1.2"}
     ]
   end
 

@@ -28,6 +28,8 @@ defmodule SmalltalkUi.Table do
 
   slot(:action, doc: "the slot for showing user actions in the last table column")
 
+  slot :empty_results
+
   def table(assigns) do
     assigns =
       with %{rows: %Phoenix.LiveView.LiveStream{}} <- assigns do
@@ -35,7 +37,7 @@ defmodule SmalltalkUi.Table do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class="table">
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>
@@ -45,7 +47,7 @@ defmodule SmalltalkUi.Table do
         </tr>
       </thead>
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
+        <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class={@row_click && "hover:bg-accent"}>
           <td
             :for={col <- @col}
             phx-click={@row_click && @row_click.(row)}
@@ -54,15 +56,37 @@ defmodule SmalltalkUi.Table do
             {render_slot(col, @row_item.(row))}
           </td>
           <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
+            <div class="flex justify-end gap-2">
               <%= for action <- @action do %>
                 {render_slot(action, @row_item.(row))}
               <% end %>
             </div>
           </td>
         </tr>
+
+        <tr class="hidden only:table-row">
+          <td colspan="100%">
+            <.empty_results>
+              <%= if Enum.any?(@empty_results) do %>
+                {render_slot(@empty_results)}
+              <% else %>
+                No Results Found
+              <% end %>
+            </.empty_results>
+          </td>
+        </tr>
       </tbody>
     </table>
+    """
+  end
+
+  slot :inner_block
+
+  def empty_results(assigns) do
+    ~H"""
+    <div class="py-16 text-center text-5xl font-bold border border-base-300 bg-base-200 rounded-lg">
+      {render_slot(@inner_block)}
+    </div>
     """
   end
 end

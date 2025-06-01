@@ -133,6 +133,17 @@ defmodule SmalltalkLayouts.Layouts do
               to: ~p"/friends/search"
             }
           ]
+        },
+        conversations: %{
+          to: ~p"/conversations/",
+          sub_menu: [
+            mine: %{
+              to: ~p"/conversations/"
+            },
+            search: %{
+              to: ~p"/conversations/search"
+            }
+          ]
         }
       )
 
@@ -149,11 +160,11 @@ defmodule SmalltalkLayouts.Layouts do
               <:sub_menu>
                 <Menu.container :if={menu[:sub_menu]}>
                   <Menu.linked_item
-                    :for={{key, sub_menu} <- menu.sub_menu}
-                    active?={@active_sub_tab == key}
+                    :for={{sub_key, sub_menu} <- menu.sub_menu}
+                    active?={@active_tab == key && @active_sub_tab == sub_key}
                     to={sub_menu.to}
                   >
-                    {menu[:label] || Phoenix.Naming.humanize(key)}
+                    {menu[:label] || Phoenix.Naming.humanize(sub_key)}
                   </Menu.linked_item>
                 </Menu.container>
               </:sub_menu>
@@ -164,15 +175,15 @@ defmodule SmalltalkLayouts.Layouts do
       <.header current_user={@current_user} site_section={Phoenix.Naming.humanize(@active_tab)} />
 
       <main class="px-4 py-20 sm:px-6 lg:px-8">
-        <div class="mx-auto container space-y-4">
+        <div class="mx-auto container">
           {render_slot(@inner_block)}
         </div>
       </main>
-      <Dock.container>
+      <%!-- <Dock.container>
         <Dock.item active?={@active_tab == :home} navigate={~p[/]} icon="hero-home">
           Home
         </Dock.item>
-      </Dock.container>
+      </Dock.container> --%>
     </Drawer.container>
     <Flash.flash_group flash={@flash} />
     """
