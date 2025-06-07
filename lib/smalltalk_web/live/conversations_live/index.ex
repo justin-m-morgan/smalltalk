@@ -24,6 +24,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
       active_tab={:conversations}
       active_sub_tab={:mine}
       current_user={@current_user}
+      talker={@talker}
     >
       <%= if @conversation_id do %>
         <Containers.header>

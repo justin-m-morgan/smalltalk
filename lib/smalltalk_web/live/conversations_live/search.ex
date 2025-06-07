@@ -23,6 +23,7 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
       active_tab={:conversations}
       active_sub_tab={:search}
       current_user={@current_user}
+      talker={@talker}
     >
       <.live_component
         module={ConversationList}

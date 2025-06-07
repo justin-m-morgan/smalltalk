@@ -33,7 +33,6 @@ defmodule SmalltalkWeb.Components.Chat do
             load: [talker: [:profile], read_receipts: [talker: [:profile]]],
             actor: actor
           )
-          |> dbg()
         end,
         reset: true
       )

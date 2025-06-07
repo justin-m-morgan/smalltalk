@@ -81,7 +81,7 @@ defmodule SmalltalkWeb.Components.ConversationList do
     preloads = socket.assigns.preloads
 
     socket =
-      case Conversations.leave_conversation(conversation_id, actor: actor) |> dbg() do
+      case Conversations.leave_conversation(conversation_id, actor: actor) do
         :ok ->
           conversation =
             Conversations.get_conversation!(conversation_id, load: preloads, actor: actor)

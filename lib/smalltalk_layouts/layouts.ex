@@ -87,64 +87,63 @@ defmodule SmalltalkLayouts.Layouts do
     """
   end
 
-  attr(:active_tab, :atom, default: nil)
-  attr(:active_sub_tab, :atom, default: nil)
-  attr(:flash, :map, default: %{})
-  attr(:current_user, :map, default: nil)
+  attr :active_tab, :atom, default: nil
+  attr :active_sub_tab, :atom, default: nil
+  attr :flash, :map, default: %{}
+  attr :current_user, :map, default: nil
+  attr :talker, :map, default: nil
 
-  slot(:inner_block, required: true)
+  slot :inner_block, required: true
 
   def app(assigns) do
     assigns =
       assigns
-      |> assign(:menu,
-        home: %{
-          to: ~p"/"
-        },
-        account: %{
-          to: ~p"/account",
-          sub_menu: [
-            contact: %{
-              to: ~p"/account/contact"
-            },
-            subscription: %{
-              to: ~p"/account/subscription"
-            }
-          ]
-        },
-        profile: %{
-          to: ~p"/profile",
-          sub_menu: [
-            image: %{
-              to: ~p"/profile/image"
-            },
-            bio: %{
-              to: ~p"/profile/bio"
-            }
-          ]
-        },
-        friends: %{
-          to: ~p"/friends",
-          sub_menu: [
-            current: %{
-              to: ~p"/friends/current"
-            },
-            search: %{
-              to: ~p"/friends/search"
-            }
-          ]
-        },
-        conversations: %{
-          to: ~p"/conversations/",
-          sub_menu: [
-            mine: %{
-              to: ~p"/conversations/"
-            },
-            search: %{
-              to: ~p"/conversations/search"
-            }
-          ]
-        }
+      |> assign(
+        :menu,
+        [
+          home: %{
+            to: ~p"/"
+          },
+          account: %{
+            to: ~p"/account",
+            sub_menu: [
+              contact: %{
+                to: ~p"/account/contact"
+              },
+              subscription: %{
+                to: ~p"/account/subscription"
+              }
+            ]
+          },
+          profile: %{
+            to: ~p"/profile"
+          },
+          friends: %{
+            to: ~p"/friends",
+            sub_menu: [
+              current: %{
+                to: ~p"/friends/current"
+              },
+              search: %{
+                to: ~p"/friends/search"
+              }
+            ]
+          },
+          conversations: %{
+            to: ~p"/conversations/",
+            sub_menu: [
+              mine: %{
+                to: ~p"/conversations/"
+              },
+              search: %{
+                to: ~p"/conversations/search"
+              }
+            ]
+          }
+        ]
+        |> Enum.reject(fn {key, _} ->
+          is_nil(assigns.talker.profile) and key not in [:home, :profile]
+        end)
       )
 
     ~H"""
@@ -154,7 +153,7 @@ defmodule SmalltalkLayouts.Layouts do
 
         <Menu.container>
           <%= for {key, menu} <- @menu do %>
-            <Menu.linked_item active?={@active_tab == key} to={menu.to}>
+            <Menu.linked_item active?={@active_tab == key} to={menu[:to]}>
               {menu[:label] || Phoenix.Naming.humanize(key)}
 
               <:sub_menu>

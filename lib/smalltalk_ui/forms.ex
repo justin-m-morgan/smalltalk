@@ -160,6 +160,7 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :container_class, :string, default: nil
   attr :input_class, :string, default: nil
   attr :field, Phoenix.HTML.FormField, required: true
 
@@ -177,7 +178,7 @@ defmodule SmalltalkUi.Forms do
     assigns = common_input_configuration(assigns)
 
     ~H"""
-    <.input_group label={@label} errors={@errors}>
+    <.input_group label={@label} errors={@errors} container_class={@container_class}>
       <input
         type={@type}
         name={@name}
@@ -193,6 +194,7 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :container_class, :string, default: nil
   attr :input_class, :string, default: nil
   attr :field, Phoenix.HTML.FormField, required: true
 
@@ -206,7 +208,7 @@ defmodule SmalltalkUi.Forms do
     assigns = common_input_configuration(assigns)
 
     ~H"""
-    <.input_group label={@label} errors={@errors}>
+    <.input_group label={@label} errors={@errors} container_class={@container_class}>
       <textarea
         name={@name}
         id={@id}
@@ -314,6 +316,7 @@ defmodule SmalltalkUi.Forms do
     assigns
     |> assign(field: nil, id: assigns[:id] || field.id)
     |> assign(:errors, Enum.map(errors, &translate_error(&1)))
+    |> assign_new(:error_class, fn -> nil end)
     |> assign_new(:label, fn -> nil end)
     |> assign_new(:name, fn -> field.name end)
     # |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)

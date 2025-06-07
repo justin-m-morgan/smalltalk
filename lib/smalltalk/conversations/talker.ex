@@ -24,7 +24,6 @@ defmodule Smalltalk.Conversations.Talker do
       argument :profile, :map, default: %{}
 
       change relate_actor(:user)
-      change manage_relationship(:profile, type: :create)
     end
   end
 

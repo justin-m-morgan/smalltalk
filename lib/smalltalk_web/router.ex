@@ -27,7 +27,8 @@ defmodule SmalltalkWeb.Router do
     ash_authentication_live_session :authenticated_routes,
       on_mount: [
         {SmalltalkWeb.LiveUserAuth, :live_user_required},
-        SmalltalkWeb.Hooks.AssignTalker
+        SmalltalkWeb.Hooks.AssignTalker,
+        SmalltalkWeb.Hooks.ForceProfileCreate
       ] do
       # in each liveview, add one of the following at the top of the module:
       #
@@ -46,6 +47,7 @@ defmodule SmalltalkWeb.Router do
       live "/account/contact", AccountLive, :contact
       live "/account/subscription", AccountLive, :subscription
       live "/profile", ProfileLive
+      live "/profile/edit", ProfileLive, :edit
       live "/profile/image", ProfileLive, :image
       live "/profile/bio", ProfileLive, :bio
       live "/friends", FriendsLive
