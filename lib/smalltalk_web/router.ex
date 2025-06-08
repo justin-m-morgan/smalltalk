@@ -48,7 +48,7 @@ defmodule SmalltalkWeb.Router do
       live "/account/subscription", AccountLive, :subscription
       live "/profile", ProfileLive
       live "/profile/edit", ProfileLive, :edit
-      live "/profile/image", ProfileLive, :image
+      live "/profile/upload_img", ProfileLive, :upload_img
       live "/profile/bio", ProfileLive, :bio
       live "/friends", FriendsLive
       live "/friends/current", FriendsLive, :current

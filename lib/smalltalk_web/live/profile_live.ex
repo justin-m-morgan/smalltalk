@@ -28,6 +28,16 @@ defmodule SmalltalkWeb.ProfileLive do
     {:noreply, socket}
   end
 
+  def handle_info({:image_saved, _images}, socket) do
+    socket =
+      socket
+      |> assign(live_action: nil)
+      |> push_patch(to: ~p"/profile")
+      |> put_flash(:success, "Image saved successfully!")
+
+    {:noreply, socket}
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -41,24 +51,53 @@ defmodule SmalltalkWeb.ProfileLive do
       <Containers.header>
         Profile
         <:actions>
+          <Button.button :if={@live_action != nil} size="btn-lg" patch={~p"/profile"}>
+            <Icon.icon name="hero-user-solid" class="size-8" /> View Profile
+          </Button.button>
           <Button.button :if={@live_action != :edit} size="btn-lg" patch={~p"/profile/edit"}>
-            {if @profile, do: "Update Profile", else: "Create a profile"}
+            <Icon.icon name="hero-list-bullet" class="size-8" />
+            {if @profile,
+              do: "Update Profile",
+              else: "Create a profile"}
+          </Button.button>
+          <Button.button
+            :if={@live_action != :upload_img && @profile}
+            size="btn-lg"
+            patch={~p"/profile/upload_img"}
+          >
+            <Icon.icon name="hero-photo-solid" class="size-8" />Upload Image
           </Button.button>
         </:actions>
       </Containers.header>
 
-      <%= if @live_action == :edit do %>
-        <Containers.card container_class="mx-auto max-w-2xl bg-base-200 shadow-xl">
-          <.live_component id="profile_form" module={Profile.ProfileForm} talker={@talker} />
-        </Containers.card>
-      <% else %>
-        <%= if @profile do %>
-          <.profile_card profile={@profile} />
-        <% else %>
-          <.no_profile_card />
-        <% end %>
+      <%= case @live_action do %>
+        <% :edit -> %>
+          <Containers.card container_class="mx-auto max-w-2xl bg-base-200 shadow-xl">
+            <.live_component id="profile_form" module={Profile.ProfileForm} talker={@talker} />
+          </Containers.card>
+        <% :upload_img -> %>
+          <%= if @profile do %>
+            <.live_component
+              id="profile_image_uploader"
+              module={Profile.ImageUpload}
+              upload_key={:avatar}
+            />
+          <% else %>
+            <.no_profile_card />
+          <% end %>
+        <% _ -> %>
+          <%= if @profile do %>
+            <.profile_card profile={@profile} />
+          <% else %>
+            <.no_profile_card />
+          <% end %>
       <% end %>
     </Layouts.app>
+    """
+  end
+
+  def image_upload(assigns) do
+    ~H"""
     """
   end
 

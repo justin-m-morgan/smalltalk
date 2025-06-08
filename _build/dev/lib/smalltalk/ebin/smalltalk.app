@@ -37,6 +37,7 @@
           'Elixir.SmalltalkWeb.Components.Chat.Input',
           'Elixir.SmalltalkWeb.Components.Chat.Messages',
           'Elixir.SmalltalkWeb.Components.ConversationList',
+          'Elixir.SmalltalkWeb.Components.Profile.ImageUpload',
           'Elixir.SmalltalkWeb.Components.Profile.ProfileForm',
           'Elixir.SmalltalkWeb.ConversationsLive.Index',
           'Elixir.SmalltalkWeb.ConversationsLive.Search',
