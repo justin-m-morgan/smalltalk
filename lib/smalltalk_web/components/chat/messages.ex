@@ -1,6 +1,7 @@
 defmodule SmalltalkWeb.Components.Chat.Messages do
   use SmalltalkWeb, :html
 
+  alias Smalltalk.Uploads
   alias Phoenix.LiveView.JS
 
   attr :id, :string, required: true
@@ -96,7 +97,15 @@ defmodule SmalltalkWeb.Components.Chat.Messages do
     ~H"""
     <div class="avatar">
       <div class={["rounded-full", @size]}>
-        <img src={@src} alt={"#{@alt_text} image"} />
+        <img
+          src={
+            Uploads.ImageProcessor.image_path(
+              @src,
+              :thumbnail
+            )
+          }
+          alt={@alt_text}
+        />
       </div>
     </div>
     """

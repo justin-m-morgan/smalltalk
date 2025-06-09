@@ -19,7 +19,6 @@ defmodule Smalltalk.Conversations.Profile do
       :first_name,
       :last_name,
       :nickname,
-      :image_src,
       :age,
       :location,
       :relationship_status,
@@ -37,7 +36,6 @@ defmodule Smalltalk.Conversations.Profile do
         :first_name,
         :last_name,
         :nickname,
-        :image_src,
         :age,
         :location,
         :relationship_status,
@@ -56,7 +54,6 @@ defmodule Smalltalk.Conversations.Profile do
     attribute :first_name, :string, allow_nil?: false
     attribute :last_name, :string, allow_nil?: false
     attribute :nickname, :string, allow_nil?: false
-    attribute :image_src, :string
 
     attribute :age, :integer
     attribute :location, :string

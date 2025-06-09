@@ -1,4 +1,6 @@
 defmodule SmalltalkWeb.ProfileLive do
+  alias Smalltalk.Uploads
+  alias Smalltalk.Uploads.ImageProcessor
   use SmalltalkWeb, :live_view
 
   alias Smalltalk.Conversations
@@ -7,7 +9,15 @@ defmodule SmalltalkWeb.ProfileLive do
   @impl true
   def mount(_params, _session, socket) do
     actor = socket.assigns.talker
-    socket = assign(socket, actor: actor, profile: socket.assigns.talker.profile)
+    talker = reload_talker!(socket.assigns.talker)
+
+    socket =
+      assign(socket,
+        actor: actor,
+        profile: talker.profile,
+        profile_pics: talker.profile_pics,
+        current_profile_pic: talker.current_profile_pic
+      )
 
     {:ok, socket}
   end
@@ -28,10 +38,12 @@ defmodule SmalltalkWeb.ProfileLive do
     {:noreply, socket}
   end
 
-  def handle_info({:image_saved, _images}, socket) do
+  def handle_info(:image_saved, socket) do
+    talker = reload_talker!(socket.assigns.talker)
+
     socket =
       socket
-      |> assign(live_action: nil)
+      |> assign(live_action: nil, profile_pics: talker.profile_pics)
       |> push_patch(to: ~p"/profile")
       |> put_flash(:success, "Image saved successfully!")
 
@@ -51,59 +63,123 @@ defmodule SmalltalkWeb.ProfileLive do
       <Containers.header>
         Profile
         <:actions>
-          <Button.button :if={@live_action != nil} size="btn-lg" patch={~p"/profile"}>
-            <Icon.icon name="hero-user-solid" class="size-8" /> View Profile
-          </Button.button>
-          <Button.button :if={@live_action != :edit} size="btn-lg" patch={~p"/profile/edit"}>
-            <Icon.icon name="hero-list-bullet" class="size-8" />
-            {if @profile,
-              do: "Update Profile",
-              else: "Create a profile"}
-          </Button.button>
-          <Button.button
-            :if={@live_action != :upload_img && @profile}
-            size="btn-lg"
-            patch={~p"/profile/upload_img"}
-          >
-            <Icon.icon name="hero-photo-solid" class="size-8" />Upload Image
-          </Button.button>
+          <div class="flex gap-1">
+            <Button.button
+              :for={
+                {key, opts} <- [
+                  nil: %{
+                    patch: ~p"/profile",
+                    icon: "hero-user-solid",
+                    label: "View Profile"
+                  },
+                  upload_img: %{
+                    patch: ~p"/profile/upload_img",
+                    icon: "hero-cloud-arrow-up-solid",
+                    label: "Upload Image"
+                  },
+                  previous_uploads: %{
+                    patch: ~p"/profile/previous_uploads",
+                    icon: "hero-rectangle-stack-solid",
+                    label: "Previous Uploads"
+                  },
+                  edit: %{
+                    patch: ~p"/profile/edit",
+                    icon: "hero-list-bullet",
+                    label:
+                      if(@profile,
+                        do: "Update Profile",
+                        else: "Create a profile"
+                      )
+                  }
+                ]
+              }
+              :if={@profile && @live_action != key}
+              size="btn-lg"
+              patch={opts.patch}
+              class="size-8"
+            >
+              <Icon.icon name={opts.icon} class="size-8" />
+              {opts.label}
+            </Button.button>
+          </div>
         </:actions>
       </Containers.header>
 
-      <%= case @live_action do %>
-        <% :edit -> %>
-          <Containers.card container_class="mx-auto max-w-2xl bg-base-200 shadow-xl">
-            <.live_component id="profile_form" module={Profile.ProfileForm} talker={@talker} />
-          </Containers.card>
-        <% :upload_img -> %>
-          <%= if @profile do %>
-            <.live_component
-              id="profile_image_uploader"
-              module={Profile.ImageUpload}
-              upload_key={:avatar}
-            />
-          <% else %>
+      <div class="grid gap-4">
+        <%= if !@profile do %>
+          <div class="max-w-lg grid gap-4 mx-auto">
             <.no_profile_card />
+            <Containers.card container_class="mx-auto max-w-2xl bg-base-200 shadow-xl">
+              <.live_component id="profile_form" module={Profile.ProfileForm} talker={@talker} />
+            </Containers.card>
+          </div>
+        <% else %>
+          <%= case @live_action do %>
+            <% :edit -> %>
+              <Containers.card container_class="mx-auto max-w-2xl bg-base-200 shadow-xl">
+                <.live_component id="profile_form" module={Profile.ProfileForm} talker={@talker} />
+              </Containers.card>
+            <% :upload_img -> %>
+              <.live_component
+                id="profile_image_uploader"
+                module={Profile.ImageUpload}
+                upload_key={:avatar}
+                actor={@talker}
+              />
+            <% :previous_uploads -> %>
+              <Containers.card container_class="bg-base-200 shadow-xl">
+                <:title>Previous Uploads</:title>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                  <p class="hidden only:block text-center col-span-full py-12 text-3xl font-bold">
+                    No uploads yet
+                  </p>
+                  <div :for={profile_pic <- @profile_pics} class="flex justify-center">
+                    <.pic_preview profile_pic={profile_pic} size="size-64" />
+                  </div>
+                </div>
+              </Containers.card>
+            <% _ -> %>
+              <.profile_card profile={@profile} current_profile_pic={@current_profile_pic} />
           <% end %>
-        <% _ -> %>
-          <%= if @profile do %>
-            <.profile_card profile={@profile} />
-          <% else %>
-            <.no_profile_card />
-          <% end %>
-      <% end %>
+        <% end %>
+      </div>
     </Layouts.app>
     """
   end
 
-  def image_upload(assigns) do
+  attr :profile_pic, Conversations.ProfilePic, required: true
+  attr :source_type, :atom, values: Uploads.ImageTag.values(), default: :thumbnail
+  attr :size, :string, default: "size-96"
+
+  def pic_preview(assigns) do
     ~H"""
+    <div class="avatar">
+      <div class={["rounded-full shadow-xl", @size]}>
+        <img
+          src={ImageProcessor.image_path(@profile_pic.original_src, @source_type)}
+          class="h-full object-cover"
+        />
+      </div>
+    </div>
     """
   end
+
+  attr :current_profile_pic, Conversations.ProfilePic
+  attr :profile, Conversations.Profile, required: true
 
   def profile_card(assigns) do
     ~H"""
     <div class="grid md:grid-cols-2 gap-4">
+      <div class="col-span-full mx-auto">
+        <%= if !@current_profile_pic do %>
+          <div class="size-96 bg-base-200 rounded-full shadow-xl">
+            <Icon.icon name="hero-user" class="size-96" />
+          </div>
+        <% else %>
+          <.pic_preview profile_pic={@current_profile_pic} source_type={:medium} />
+        <% end %>
+      </div>
+
       <Containers.card
         :for={
           {title, config} <- [
@@ -133,13 +209,20 @@ defmodule SmalltalkWeb.ProfileLive do
 
   def no_profile_card(assigns) do
     ~H"""
-    <Containers.card container_class="bg-base-200 shadow-xl max-w-xl mx-auto">
+    <Containers.card container_class="bg-base-200 shadow-xl">
       <:title>
         No Profile Yet
       </:title>
 
-      <Button.button size="btn-xl" patch={~p"/profile/edit"}>Create a profile</Button.button>
+      <p>You must create a profile before gaining access to much of Smalltalk's functionality.</p>
     </Containers.card>
     """
+  end
+
+  def reload_talker!(actor) do
+    Ash.reload!(actor,
+      load: [:profile, :current_profile_pic, :profile_pics],
+      actor: actor
+    )
   end
 end

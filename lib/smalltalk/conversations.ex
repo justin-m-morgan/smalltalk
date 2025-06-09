@@ -38,5 +38,9 @@ defmodule Smalltalk.Conversations do
       define :join_conversation, action: :join, args: [:conversation_id]
       define :leave_conversation, action: :leave, args: [:conversation_id]
     end
+
+    resource Smalltalk.Conversations.ProfilePic do
+      define :submit_profile_pic, action: :create
+    end
   end
 end

@@ -24,12 +24,14 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import ChatWindow from "./hooks/chat_window"
+import Uploaders from "./uploader"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ChatWindow }
+  hooks: { ChatWindow },
+  uploaders: Uploaders
 })
 
 // Show progress bar on live navigation and form submits

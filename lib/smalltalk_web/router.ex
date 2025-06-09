@@ -13,6 +13,7 @@ defmodule SmalltalkWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug Corsica, origins: "*"
   end
 
   pipeline :api do
@@ -49,6 +50,7 @@ defmodule SmalltalkWeb.Router do
       live "/profile", ProfileLive
       live "/profile/edit", ProfileLive, :edit
       live "/profile/upload_img", ProfileLive, :upload_img
+      live "/profile/previous_uploads", ProfileLive, :previous_uploads
       live "/profile/bio", ProfileLive, :bio
       live "/friends", FriendsLive
       live "/friends/current", FriendsLive, :current

@@ -12,7 +12,7 @@ defmodule SmalltalkWeb.Hooks.AssignTalker do
     current_user = socket.assigns.current_user
 
     socket =
-      case Conversations.get_me(load: [:profile], actor: current_user) do
+      case Conversations.get_me(load: [:profile, :current_profile_pic], actor: current_user) do
         {:ok, talker} ->
           assign(socket, :talker, talker)
 
@@ -20,7 +20,7 @@ defmodule SmalltalkWeb.Hooks.AssignTalker do
           assign(
             socket,
             :talker,
-            Conversations.create_talker!(load: [:profile], actor: current_user)
+            Conversations.create_talker!(load: [:profile, :profile_pics], actor: current_user)
           )
       end
 

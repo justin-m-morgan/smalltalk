@@ -1,10 +1,13 @@
 defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   use SmalltalkWeb, :live_component
 
+  alias Smalltalk.Conversations
+  alias Smalltalk.Uploads.ImageProcessor
+
   @impl Phoenix.LiveComponent
   def update(assigns, socket) do
     accepted_file_types = ~w(.jpg .jpeg)
-    max_file_size = 1_000_000
+    max_file_size = 6_000_000
 
     socket =
       socket
@@ -24,6 +27,7 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   end
 
   @impl Phoenix.LiveComponent
+  @spec handle_event(<<_::32, _::_*8>>, any(), any()) :: {:noreply, any()}
   def handle_event("validate", _params, socket) do
     {:noreply, socket}
   end
@@ -35,15 +39,20 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
 
   @impl Phoenix.LiveComponent
   def handle_event("save", _params, socket) do
+    actor = socket.assigns.actor
+    self = self()
+
     uploaded_files =
       consume_uploaded_entries(socket, :avatar, fn %{path: path}, _entry ->
-        dest = Path.join([:code.priv_dir(:smalltalk), "static", "uploads", Path.basename(path)])
-        # You will need to create `priv/static/uploads` for `File.cp!/2` to work.
-        File.cp!(path, dest)
-        {:ok, ~p"/uploads/#{Path.basename(dest)}"}
-      end)
+        s3_path =
+          ImageProcessor.upload_original_image(path, actor.user_id)
 
-    send(self(), {:image_saved, uploaded_files})
+        Conversations.submit_profile_pic!(%{original_src: s3_path}, actor: actor)
+
+        send(self, :image_saved)
+
+        {:ok, s3_path}
+      end)
 
     {:noreply, update(socket, :uploaded_files, &(&1 ++ uploaded_files))}
   end
@@ -51,6 +60,7 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:too_many_files), do: "You have selected too many files"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
+  defp error_to_string(error), do: dbg(error)
 
   @impl Phoenix.LiveComponent
 

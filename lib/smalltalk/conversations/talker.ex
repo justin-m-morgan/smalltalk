@@ -5,7 +5,7 @@ defmodule Smalltalk.Conversations.Talker do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Smalltalk.Conversations.{Conversation, Profile, Participants, ReadReceipt}
+  alias Smalltalk.Conversations.{Conversation, Profile, ProfilePic, Participants, ReadReceipt}
 
   postgres do
     schema "conversations"
@@ -48,6 +48,8 @@ defmodule Smalltalk.Conversations.Talker do
   relationships do
     belongs_to :user, Smalltalk.Accounts.User
     has_one :profile, Profile
+    has_many :profile_pics, ProfilePic
+    has_one :current_profile_pic, ProfilePic, read_action: :current
 
     has_many :read_receipts, ReadReceipt
 

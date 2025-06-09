@@ -3,6 +3,7 @@ defmodule SmalltalkWeb.Components.Chat do
   use LiveStreamAsync
 
   alias Smalltalk.Conversations
+  alias Smalltalk.Uploads
   alias SmalltalkWeb.Components.Chat
 
   @impl true
@@ -18,7 +19,7 @@ defmodule SmalltalkWeb.Components.Chat do
       |> assign_async(:conversation, fn ->
         conversation =
           Conversations.get_conversation!(conversation_id,
-            load: [participants: [talker: [:profile]]],
+            load: [participants: [talker: [:profile, :current_profile_pic]]],
             actor: actor
           )
 
@@ -30,9 +31,13 @@ defmodule SmalltalkWeb.Components.Chat do
         fn ->
           Conversations.get_messages_for_conversation!(
             %{conversation_id: conversation_id},
-            load: [talker: [:profile], read_receipts: [talker: [:profile]]],
+            load: [
+              talker: [:profile, :current_profile_pic],
+              read_receipts: [talker: [:profile, :current_profile_pic]]
+            ],
             actor: actor
           )
+          |> dbg()
         end,
         reset: true
       )
@@ -53,7 +58,10 @@ defmodule SmalltalkWeb.Components.Chat do
     socket =
       case AshPhoenix.Form.submit(original_form, params: params) do
         {:ok, message} ->
-          message = Ash.load!(message, [talker: [:profile]], actor: socket.assigns.actor)
+          message =
+            Ash.load!(message, [talker: [:profile, :current_profile_pic]],
+              actor: socket.assigns.actor
+            )
 
           socket
           |> stream_insert(:messages, message)
@@ -119,10 +127,7 @@ defmodule SmalltalkWeb.Components.Chat do
           <.async_result :let={conversation} assign={@conversation}>
             <:loading>Loading Conversation</:loading>
             <:failed>Failed to Load Conversation</:failed>
-            <Chat.ConversationInfo.container
-              img_src="https://i.pravatar.cc/300"
-              img_alt_text="Conversation Img"
-            >
+            <Chat.ConversationInfo.container participants={conversation.participants}>
               <:main_text>{conversation.short_name}</:main_text>
             </Chat.ConversationInfo.container>
           </.async_result>
@@ -145,7 +150,12 @@ defmodule SmalltalkWeb.Components.Chat do
                 <:failed>Failed to Load Conversation</:failed>
                 <Chat.ConversationSidebar.contact
                   :for={participant <- participants}
-                  image_src="https://i.pravatar.cc/300"
+                  image_src={
+                    Uploads.ImageProcessor.image_path(
+                      participant.talker.current_profile_pic.original_src,
+                      :thumbnail
+                    )
+                  }
                   name={participant.talker.profile.first_name}
                   timestamp="2 days ago"
                 >
@@ -199,19 +209,19 @@ defmodule SmalltalkWeb.Components.Chat do
                   >
                     <:left_gutter>
                       <Chat.Messages.avatar
-                        src="https://i.pravatar.cc/300"
+                        src={message.talker.current_profile_pic.original_src}
                         alt_text={"#{message.talker.profile.first_name} image"}
                       />
                     </:left_gutter>
                     <:right_gutter>
                       <Chat.Messages.avatar
-                        src="https://i.pravatar.cc/300"
-                        alt_text="Bob Builder image"
+                        src={message.talker.current_profile_pic.original_src}
+                        alt_text={"#{message.talker.profile.first_name} image"}
                       />
                     </:right_gutter>
                     <Chat.Messages.contact_info
                       name={message.talker.profile.first_name}
-                      timestamp="2 days ago"
+                      timestamp={format_time(message.id)}
                     />
                     <Chat.Messages.message_bubble mine?={@actor.id == message.talker_id}>
                       {message.content}
@@ -274,5 +284,24 @@ defmodule SmalltalkWeb.Components.Chat do
       </button>
     </li>
     """
+  end
+
+  defp format_time(uuid) when is_binary(uuid) do
+    uuid
+    |> Ash.UUIDv7.extract_timestamp()
+    |> DateTime.from_unix!(:millisecond)
+    |> format_time()
+  end
+
+  defp format_time(%DateTime{} = timestamp) do
+    time_portion = "{h12}:{m}:{s} {AM} (UTC)"
+    date_portion = "{D} {Mshort}, {YYYY} ({WDshort})"
+
+    format =
+      if Timex.compare(timestamp, DateTime.utc_now(), :day) < 0,
+        do: time_portion <> ", " <> date_portion,
+        else: time_portion
+
+    Timex.format!(timestamp, format)
   end
 end

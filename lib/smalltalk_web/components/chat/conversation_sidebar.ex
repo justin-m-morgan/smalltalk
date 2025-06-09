@@ -126,7 +126,7 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
     ]}>
       <div class="flex items-center gap-3">
         <div class="relative shrink-0">
-          <img class="h-8 w-8 rounded-full" src={@image_src} alt={"#{@name} image"} />
+          <img class="h-8 w-8 object-cover rounded-full" src={@image_src} alt={"#{@name} image"} />
           <span class={[
             "absolute start-6 top-0
             h-3.5 w-3.5
