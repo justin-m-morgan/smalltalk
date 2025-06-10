@@ -1,0 +1,63 @@
+<div
+    class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-2.5 dark:border-gray-700 dark:bg-gray-800">
+    <div class="flex items-center gap-3">
+        <div class="relative shrink-0">
+            <img class="h-8 w-8 rounded-full" src="/images/users/joseph-mcfall.png" alt="Joseph image" />
+        </div>
+        <div class="leading-1.5 flex w-full flex-col">
+            <span class="text-base font-medium text-gray-900 dark:text-white">Joseph McFall</span>
+            <div class="flex items-center text-xs font-normal text-green-500">
+                <div class="me-1 h-2.5 w-2.5 rounded-full bg-green-400"></div>
+                <span>Online</span>
+            </div>
+        </div>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="/audio/outgoing-call/" data-tooltip-target="tooltip-new-individual-call"
+            class="inline-flex cursor-pointer justify-center rounded-lg p-1.5 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-900 dark:hover:text-primary-300">
+            <svg class="h-6 w-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="currentColor" viewBox="0 0 24 24">
+                <path
+                    d="M7.978 4a2.553 2.553 0 0 0-1.926.877C4.233 6.7 3.699 8.751 4.153 10.814c.44 1.995 1.778 3.893 3.456 5.572 1.68 1.679 3.577 3.018 5.57 3.459 2.062.456 4.115-.073 5.94-1.885a2.556 2.556 0 0 0 .001-3.861l-1.21-1.21a2.689 2.689 0 0 0-3.802 0l-.617.618a.806.806 0 0 1-1.14 0l-1.854-1.855a.807.807 0 0 1 0-1.14l.618-.62a2.692 2.692 0 0 0 0-3.803l-1.21-1.211A2.555 2.555 0 0 0 7.978 4Z" />
+            </svg>
+            <span class="sr-only">Make a phone call</span>
+        </a>
+        <div id="tooltip-new-individual-call" role="tooltip"
+            class="tooltip invisible absolute z-10 inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white opacity-0 shadow-xs transition-opacity duration-300 dark:bg-gray-700">
+            Make a phone call
+            <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+        <a href="/video/meeting-room/" data-tooltip-target="tooltip-new-individual-video"
+            class="inline-flex cursor-pointer justify-center rounded-lg p-1.5 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-900 dark:hover:text-primary-300">
+            <svg class="h-6 w-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd"
+                    d="M14 7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7Zm2 9.387 4.684 1.562A1 1 0 0 0 22 17V7a1 1 0 0 0-1.316-.949L16 7.613v8.774Z"
+                    clip-rule="evenodd" />
+            </svg>
+            <span class="sr-only">Make a video call</span>
+        </a>
+        <div id="tooltip-new-individual-video" role="tooltip"
+            class="tooltip invisible absolute z-10 inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white opacity-0 shadow-xs transition-opacity duration-300 dark:bg-gray-700">
+            Make a video call
+            <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+        <button type="button" data-tooltip-target="tooltip-show-contact-info"
+            data-drawer-target="readUserDrawerAdvanced" data-drawer-show="readUserDrawerAdvanced"
+            data-drawer-placement="right" data-drawer
+            class="inline-flex cursor-pointer justify-center rounded-lg p-1.5 text-primary-700 hover:bg-primary-50 dark:text-primary-500 dark:hover:bg-primary-900 dark:hover:text-primary-300">
+            <svg class="h-6 w-6" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd"
+                    d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm9.408-5.5a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2h-.01ZM10 10a1 1 0 1 0 0 2h1v3h-1a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2h-1v-4a1 1 0 0 0-1-1h-2Z"
+                    clip-rule="evenodd" />
+            </svg>
+            <span class="sr-only">Show contact information</span>
+        </button>
+        <div id="tooltip-show-contact-info" role="tooltip"
+            class="tooltip invisible absolute z-10 inline-block rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white opacity-0 shadow-xs transition-opacity duration-300 dark:bg-gray-700">
+            Show contact information
+            <div class="tooltip-arrow" data-popper-arrow></div>
+        </div>
+    </div>
+</div>

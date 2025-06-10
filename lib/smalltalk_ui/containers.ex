@@ -5,7 +5,7 @@ defmodule SmalltalkUi.Containers do
   @doc """
   A card
   """
-  attr(:container_class, :string, default: nil)
+  attr(:container_class, :any, default: nil)
   attr(:id, :string, default: nil)
 
   slot(:image)

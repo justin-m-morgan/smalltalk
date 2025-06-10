@@ -8,6 +8,7 @@ defmodule SmalltalkWeb.HomeLive do
       active_tab={:home}
       active_sub_tab={@live_action}
       current_user={@current_user}
+      talker={@talker}
     >
       <div class="grid gap-16">
         Live Action: {@live_action}

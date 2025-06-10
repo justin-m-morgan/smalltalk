@@ -16,6 +16,7 @@ defmodule Smalltalk.Application do
       # {Smalltalk.Worker, arg},
       # Start to serve requests, typically the last entry
       SmalltalkWeb.Endpoint,
+      Smalltalk.Uploads.ImageProcessor,
       {AshAuthentication.Supervisor, [otp_app: :smalltalk]}
     ]
 

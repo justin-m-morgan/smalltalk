@@ -9,10 +9,11 @@ defmodule SmalltalkWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, html: {SmalltalkWeb.Layouts, :root}
+    plug :put_root_layout, html: {SmalltalkLayouts.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :load_from_session
+    plug Corsica, origins: "*"
   end
 
   pipeline :api do
@@ -25,7 +26,11 @@ defmodule SmalltalkWeb.Router do
     pipe_through :browser
 
     ash_authentication_live_session :authenticated_routes,
-      on_mount: [{SmalltalkWeb.LiveUserAuth, :live_user_required}] do
+      on_mount: [
+        {SmalltalkWeb.LiveUserAuth, :live_user_required},
+        SmalltalkWeb.Hooks.AssignTalker,
+        SmalltalkWeb.Hooks.ForceProfileCreate
+      ] do
       # in each liveview, add one of the following at the top of the module:
       #
       # If an authenticated user must be present:
@@ -43,11 +48,18 @@ defmodule SmalltalkWeb.Router do
       live "/account/contact", AccountLive, :contact
       live "/account/subscription", AccountLive, :subscription
       live "/profile", ProfileLive
-      live "/profile/image", ProfileLive, :image
+      live "/profile/edit", ProfileLive, :edit
+      live "/profile/upload_img", ProfileLive, :upload_img
+      live "/profile/previous_uploads", ProfileLive, :previous_uploads
       live "/profile/bio", ProfileLive, :bio
       live "/friends", FriendsLive
       live "/friends/current", FriendsLive, :current
       live "/friends/search", FriendsLive, :search
+
+      live "/conversations", ConversationsLive.Index, :mine
+      live "/conversations/search", ConversationsLive.Search, :search
+      live "/conversations/new", ConversationsLive.Search, :search
+      # live "/conversations/:conversation_id", ConversationsLive.Show
     end
   end
 

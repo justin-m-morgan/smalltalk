@@ -76,7 +76,7 @@ defmodule SmalltalkUi.Forms do
       end)
 
     ~H"""
-    <fieldset class={["fieldset mb-2", @class]}>
+    <fieldset class={["fieldset mb-2 w-full", @class]}>
       <label>
         <input type="hidden" name={@name} value="false" disabled={@rest[:disabled]} />
         <span class="fieldset-label">
@@ -98,7 +98,7 @@ defmodule SmalltalkUi.Forms do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <fieldset class={["fieldset mb-2", @class]}>
+    <fieldset class={["fieldset mb-2 w-full", @class]}>
       <label>
         <span :if={@label} class="fieldset-label mb-1">{@label}</span>
         <select
@@ -119,7 +119,7 @@ defmodule SmalltalkUi.Forms do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <fieldset class={["fieldset mb-2", @class]}>
+    <fieldset class={["fieldset mb-2 w-full", @class]}>
       <label>
         <span :if={@label} class="fieldset-label mb-1">{@label}</span>
         <textarea
@@ -160,6 +160,88 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :container_class, :string, default: nil
+  attr :input_class, :string, default: nil
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  attr :type, :string,
+    default: "text",
+    values: ["text", "datetime-local", "url", "password", "email", "number", "tel"]
+
+  attr :label, :string
+
+  attr :rest, :global,
+    include: ~w(accept autocomplete capture disabled max maxlength min minlength
+                 pattern placeholder readonly required size step)
+
+  def text_input(assigns) do
+    assigns = common_input_configuration(assigns)
+
+    ~H"""
+    <.input_group label={@label} errors={@errors} container_class={@container_class}>
+      <input
+        type={@type}
+        name={@name}
+        id={@id}
+        value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+        class={[
+          @input_class || "w-full input",
+          @errors != [] && (@error_class || "input-error")
+        ]}
+        {@rest}
+      />
+    </.input_group>
+    """
+  end
+
+  attr :container_class, :string, default: nil
+  attr :input_class, :string, default: nil
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  attr :label, :string, default: nil
+
+  attr :rest, :global,
+    include: ~w(accept autocomplete capture cols disabled max maxlength min minlength
+                 pattern placeholder readonly required rows size step)
+
+  def textarea_input(assigns) do
+    assigns = common_input_configuration(assigns)
+
+    ~H"""
+    <.input_group label={@label} errors={@errors} container_class={@container_class}>
+      <textarea
+        name={@name}
+        id={@id}
+        value={Phoenix.HTML.Form.normalize_value("textarea", @value)}
+        class={[
+          "textarea textarea-md",
+          @input_class || "w-full",
+          @errors != [] && (@error_class || "input-error")
+        ]}
+        {@rest}
+      />
+    </.input_group>
+    """
+  end
+
+  attr :label, :string
+  attr :errors, :list
+  attr :container_class, :string, default: nil
+
+  slot :inner_block, required: true
+
+  defp input_group(assigns) do
+    ~H"""
+    <fieldset class={["fieldset w-full", @container_class]}>
+      <label>
+        <span :if={@label} class="fieldset-label mb-1">{@label}</span>
+        {render_slot(@inner_block)}
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
@@ -170,18 +252,30 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
-  attr(:form, :map)
-  # attr :as, :atom, doc: "used as the event key for this form"
-  attr(:rest, :global, include: ~w/phx-change phx-submit phx-target as/)
-  slot(:inner_block, required: true)
+  attr :form, :map
+  attr :actions_container_classes, :string, default: "flex justify-center"
+  attr :rest, :global, include: ~w/phx-change phx-submit phx-target as/
+
+  slot :submit_button do
+    attr :size, :string
+  end
+
+  slot :inner_block, required: true
 
   def simple_form(assigns) do
     ~H"""
     <.form for={@form} id={"#{@form.source.resource}-form"} {@rest}>
       {render_slot(@inner_block)}
-      <footer>
-        <Button.button phx-disable-with="Saving...">
-          Save {@form.source.resource |> Module.split() |> List.last() |> Phoenix.Naming.humanize()}
+      <footer class={@actions_container_classes}>
+        <Button.button
+          phx-disable-with="Saving..."
+          size={@submit_button |> List.first(%{}) |> Map.get(:size, "btn-lg")}
+        >
+          <%= if Enum.any?(@submit_button) do %>
+            {render_slot(@submit_button)}
+          <% else %>
+            Save {@form.source.resource |> Module.split() |> List.last() |> Phoenix.Naming.humanize()}
+          <% end %>
         </Button.button>
       </footer>
     </.form>
@@ -214,5 +308,18 @@ defmodule SmalltalkUi.Forms do
   """
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
+  end
+
+  defp common_input_configuration(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
+    errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
+
+    assigns
+    |> assign(field: nil, id: assigns[:id] || field.id)
+    |> assign(:errors, Enum.map(errors, &translate_error(&1)))
+    |> assign_new(:error_class, fn -> nil end)
+    |> assign_new(:label, fn -> nil end)
+    |> assign_new(:name, fn -> field.name end)
+    # |> assign_new(:name, fn -> if assigns.multiple, do: field.name <> "[]", else: field.name end)
+    |> assign_new(:value, fn -> field.value end)
   end
 end

@@ -4,7 +4,7 @@ defmodule Smalltalk.Conversations.Message do
     domain: Smalltalk.Conversations,
     data_layer: AshPostgres.DataLayer
 
-  alias Smalltalk.Conversations.{Conversation, Talker}
+  alias Smalltalk.Conversations.{Conversation, ReadReceipt, Talker}
 
   postgres do
     schema "conversations"
@@ -17,17 +17,15 @@ defmodule Smalltalk.Conversations.Message do
 
     read :read_by_conversation_id do
       argument :conversation_id, :uuid_v7, allow_nil?: false
-
-      filter expr(:conversation_id == ^arg(:conversation_id))
+      filter expr(conversation_id == ^arg(:conversation_id))
     end
 
     create :create do
       primary? true
-      argument :conversation, :struct, allow_nil?: false
 
-      accept [:content]
+      accept [:content, :conversation_id]
 
-      change manage_relationship(:conversation, type: :append)
+      change relate_actor(:talker)
     end
   end
 
@@ -37,7 +35,8 @@ defmodule Smalltalk.Conversations.Message do
   end
 
   relationships do
-    belongs_to :conversation, Conversation
+    belongs_to :conversation, Conversation, public?: true
     belongs_to :talker, Talker
+    has_many :read_receipts, ReadReceipt, destination_attribute: :most_recent_message_id
   end
 end

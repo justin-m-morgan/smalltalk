@@ -1,0 +1,94 @@
+# ExAws
+
+## Basics
+
+```elixir
+# ExAws.S3.put_bucket("bucket", "us-west-1")
+# |> ExAws.request!()
+```
+
+```elixir
+%{buckets: buckets} = ExAws.S3.list_buckets()
+|> ExAws.request!()
+|> Map.get(:body)
+```
+
+```elixir
+ExAws.S3.put_bucket_cors("bucket", [
+  %{
+    allowed_headers: ["*"],
+    allowed_methods: ["GET", "PUT", "POST"],
+    allowed_origins: ["*"],
+    exposed_headers: []
+  }
+])
+|> ExAws.request!()
+```
+
+```elixir
+ExAws.S3.get_bucket_acl("bucket")
+|> ExAws.request!()
+|> Map.get(:body)
+|> XmlToMap.naive_map
+```
+
+```elixir
+ExAws.S3.list_objects("bucket")
+|> ExAws.request!()
+```
+
+```elixir
+upload_path = File.cwd!()
+|> Path.join("priv/static/uploads")
+
+```
+
+```elixir
+test_file = File.ls!(upload_path)
+|> List.first()
+
+
+```
+
+```elixir
+jpg =
+  upload_path
+  |> Path.join(test_file)
+  |> Image.thumbnail!(200)
+  |> Image.stream!(suffix: ".jpg", buffer_size: 5_242_880)
+  |> ExAws.S3.upload("bucket", "some_object_name.jpg")
+  |> ExAws.request!()
+```
+
+```elixir
+    config = ExAws.Config.new(:s3)
+    bucket = "bucket"
+    key = "public/testfile2"
+
+    
+
+    {:ok, url} =
+      ExAws.S3.presigned_url(config, :put, bucket, key,
+        expires_in: 3600,
+        query_params: [{"Content-Type", "image/jpeg"}]
+      )
+```
+
+```elixir
+url
+```
+
+```elixir
+url
+|> Req.put!(body: "hi there!")
+```
+
+```elixir
+ExAws.S3.get_object("bucket", "public/testfile2")
+|> ExAws.request!()
+```
+
+```elixir
+ExAws.S3.list_objects("bucket")
+|> ExAws.request!()
+```

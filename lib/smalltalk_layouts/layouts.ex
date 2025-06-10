@@ -87,53 +87,63 @@ defmodule SmalltalkLayouts.Layouts do
     """
   end
 
-  attr(:active_tab, :atom, default: nil)
-  attr(:active_sub_tab, :atom, default: nil)
-  attr(:flash, :map, default: %{})
-  attr(:current_user, :map, default: nil)
+  attr :active_tab, :atom, default: nil
+  attr :active_sub_tab, :atom, default: nil
+  attr :flash, :map, default: %{}
+  attr :current_user, :map, default: nil
+  attr :talker, :map, default: nil
 
-  slot(:inner_block, required: true)
+  slot :inner_block, required: true
 
   def app(assigns) do
     assigns =
       assigns
-      |> assign(:menu,
-        home: %{
-          to: ~p"/"
-        },
-        account: %{
-          to: ~p"/account",
-          sub_menu: [
-            contact: %{
-              to: ~p"/account/contact"
-            },
-            subscription: %{
-              to: ~p"/account/subscription"
-            }
-          ]
-        },
-        profile: %{
-          to: ~p"/profile",
-          sub_menu: [
-            image: %{
-              to: ~p"/profile/image"
-            },
-            bio: %{
-              to: ~p"/profile/bio"
-            }
-          ]
-        },
-        friends: %{
-          to: ~p"/friends",
-          sub_menu: [
-            current: %{
-              to: ~p"/friends/current"
-            },
-            search: %{
-              to: ~p"/friends/search"
-            }
-          ]
-        }
+      |> assign(
+        :menu,
+        [
+          home: %{
+            to: ~p"/"
+          },
+          account: %{
+            to: ~p"/account",
+            sub_menu: [
+              contact: %{
+                to: ~p"/account/contact"
+              },
+              subscription: %{
+                to: ~p"/account/subscription"
+              }
+            ]
+          },
+          profile: %{
+            to: ~p"/profile"
+          },
+          friends: %{
+            to: ~p"/friends",
+            sub_menu: [
+              current: %{
+                to: ~p"/friends/current"
+              },
+              search: %{
+                to: ~p"/friends/search"
+              }
+            ]
+          },
+          conversations: %{
+            to: ~p"/conversations/",
+            sub_menu: [
+              mine: %{
+                to: ~p"/conversations/"
+              },
+              search: %{
+                to: ~p"/conversations/search"
+              }
+            ]
+          }
+        ]
+        |> Enum.reject(fn {key, _} ->
+          is_nil(assigns.talker.profile) and key not in [:home, :profile]
+        end)
       )
 
     ~H"""
@@ -143,17 +153,17 @@ defmodule SmalltalkLayouts.Layouts do
 
         <Menu.container>
           <%= for {key, menu} <- @menu do %>
-            <Menu.linked_item active?={@active_tab == key} to={menu.to}>
+            <Menu.linked_item active?={@active_tab == key} to={menu[:to]}>
               {menu[:label] || Phoenix.Naming.humanize(key)}
 
               <:sub_menu>
                 <Menu.container :if={menu[:sub_menu]}>
                   <Menu.linked_item
-                    :for={{key, sub_menu} <- menu.sub_menu}
-                    active?={@active_sub_tab == key}
+                    :for={{sub_key, sub_menu} <- menu.sub_menu}
+                    active?={@active_tab == key && @active_sub_tab == sub_key}
                     to={sub_menu.to}
                   >
-                    {menu[:label] || Phoenix.Naming.humanize(key)}
+                    {menu[:label] || Phoenix.Naming.humanize(sub_key)}
                   </Menu.linked_item>
                 </Menu.container>
               </:sub_menu>
@@ -164,15 +174,15 @@ defmodule SmalltalkLayouts.Layouts do
       <.header current_user={@current_user} site_section={Phoenix.Naming.humanize(@active_tab)} />
 
       <main class="px-4 py-20 sm:px-6 lg:px-8">
-        <div class="mx-auto container space-y-4">
+        <div class="mx-auto container">
           {render_slot(@inner_block)}
         </div>
       </main>
-      <Dock.container>
+      <%!-- <Dock.container>
         <Dock.item active?={@active_tab == :home} navigate={~p[/]} icon="hero-home">
           Home
         </Dock.item>
-      </Dock.container>
+      </Dock.container> --%>
     </Drawer.container>
     <Flash.flash_group flash={@flash} />
     """

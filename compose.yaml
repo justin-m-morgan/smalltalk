@@ -1,7 +1,7 @@
 services:
 
   pg:
-    image: postgres
+    image: postgres:17.5
     restart: always
     shm_size: 128mb
     ports:
@@ -11,6 +11,24 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U seaweed -h postgres -p 5434" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  localstack:
+    image: localstack/localstack:s3-latest
+    ports:
+      - "127.0.0.1:4566:4566" # LocalStack Gateway
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - DISABLE_CORS_CHECKS=1
+      - S3_SKIP_SIGNATURE_VALIDATION=1
+    volumes:
+      - s3localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
 volumes:
   pgdata:
+  s3localstack:
+
+
