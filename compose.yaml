@@ -24,11 +24,11 @@ services:
       - DEBUG=${DEBUG:-0}
       - DISABLE_CORS_CHECKS=1
       - S3_SKIP_SIGNATURE_VALIDATION=1
+      - PERSISTENCE=1
     volumes:
-      - s3localstack:/var/lib/localstack"
+      - ./localstack_volume:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
 volumes:
   pgdata:
-  s3localstack:
 
 
