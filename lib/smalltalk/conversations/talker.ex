@@ -5,7 +5,15 @@ defmodule Smalltalk.Conversations.Talker do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Smalltalk.Conversations.{Conversation, Profile, ProfilePic, Participants, ReadReceipt}
+  alias Smalltalk.Conversations.{
+    Conversation,
+    FriendshipRequest,
+    Profile,
+    ProfilePic,
+    Participants,
+    ReadReceipt,
+    Talker
+  }
 
   postgres do
     schema "conversations"
@@ -16,7 +24,16 @@ defmodule Smalltalk.Conversations.Talker do
   actions do
     defaults [:read, :destroy, update: :*]
 
-    read :me do
+    read :me
+
+    read :friend do
+      filter expr(
+               (id != ^actor(:id) &&
+                  (inbound_friendship_requests.status == :accepted and
+                     inbound_friendship_requests.requested_id == ^actor(:id))) ||
+                 (outbound_friendship_requests.status == :accepted and
+                    outbound_friendship_requests.requester_id == ^actor(:id))
+             )
     end
 
     create :create do
@@ -58,6 +75,23 @@ defmodule Smalltalk.Conversations.Talker do
       source_attribute_on_join_resource :talker_id
       destination_attribute_on_join_resource :conversation_id
     end
+
+    has_many :inbound_friendship_requests, FriendshipRequest do
+      destination_attribute :requester_id
+    end
+
+    has_many :outbound_friendship_requests, FriendshipRequest do
+      destination_attribute :requested_id
+    end
+
+    has_many :friends, Talker do
+      read_action :is_friend
+      destination_attribute :id
+    end
+  end
+
+  calculations do
+    calculate :email, :string, expr(user.email)
   end
 
   identities do

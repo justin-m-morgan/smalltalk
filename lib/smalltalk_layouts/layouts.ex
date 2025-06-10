@@ -122,10 +122,13 @@ defmodule SmalltalkLayouts.Layouts do
             to: ~p"/friends",
             sub_menu: [
               current: %{
-                to: ~p"/friends/current"
+                to: ~p"/friends"
               },
               search: %{
                 to: ~p"/friends/search"
+              },
+              requests: %{
+                to: ~p"/friends/requests"
               }
             ]
           },

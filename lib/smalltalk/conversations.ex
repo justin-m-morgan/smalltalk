@@ -8,6 +8,8 @@ defmodule Smalltalk.Conversations do
       define :create_talker, action: :create
       define :get_talker, action: :read, get?: true
       define :get_me, action: :me, get?: true
+      define :all_talkers, action: :read
+      define :all_friends, action: :friend
     end
 
     resource Smalltalk.Conversations.Conversation do
@@ -41,6 +43,19 @@ defmodule Smalltalk.Conversations do
 
     resource Smalltalk.Conversations.ProfilePic do
       define :submit_profile_pic, action: :create
+    end
+
+    resource Smalltalk.Conversations.FriendshipRequest do
+      define :send_friend_request, action: :create
+      define :all_requests, action: :read
+      define :inbound_friend_requests, action: :inbound
+      define :outbound_friend_requests, action: :outbound
+      define :accept_friend_request, action: :accept
+      define :reject_friend_request, action: :reject
+      define :cancel_friend_request, action: :cancel
+      define :revive_friend_request, action: :cancel
+      define :get_friend_request, action: :by_talker_id, args: [:talker_id], get?: true
+      define :unfriend
     end
   end
 end

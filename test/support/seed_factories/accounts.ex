@@ -4,7 +4,7 @@ defmodule Smalltalk.SeedFactories.Accounts do
   alias Smalltalk.Accounts
 
   command :create_user do
-    param(:email, value: "test@example.com")
+    param(:email, generate: &Faker.Internet.email/0)
     param(:password, value: "password")
 
     resolve(fn args ->

@@ -25,41 +25,42 @@ defmodule SmalltalkWeb.Router do
   scope "/", SmalltalkWeb do
     pipe_through :browser
 
+    # in each liveview, add one of the following at the top of the module:
+    #
+    # If an authenticated user must be present:
+    # on_mount {SmalltalkWeb.LiveUserAuth, :live_user_required}
+    #
+    # If an authenticated user *may* be present:
+    # on_mount {SmalltalkWeb.LiveUserAuth, :live_user_optional}
+    #
+    # If an authenticated user must *not* be present:
+    # on_mount {SmalltalkWeb.LiveUserAuth, :live_no_user}
+
     ash_authentication_live_session :authenticated_routes,
       on_mount: [
         {SmalltalkWeb.LiveUserAuth, :live_user_required},
         SmalltalkWeb.Hooks.AssignTalker,
         SmalltalkWeb.Hooks.ForceProfileCreate
       ] do
-      # in each liveview, add one of the following at the top of the module:
-      #
-      # If an authenticated user must be present:
-      # on_mount {SmalltalkWeb.LiveUserAuth, :live_user_required}
-      #
-      # If an authenticated user *may* be present:
-      # on_mount {SmalltalkWeb.LiveUserAuth, :live_user_optional}
-      #
-      # If an authenticated user must *not* be present:
-      # on_mount {SmalltalkWeb.LiveUserAuth, :live_no_user}
-
       live "/", HomeLive, :home
 
       live "/account", AccountLive
       live "/account/contact", AccountLive, :contact
       live "/account/subscription", AccountLive, :subscription
+
       live "/profile", ProfileLive
       live "/profile/edit", ProfileLive, :edit
       live "/profile/upload_img", ProfileLive, :upload_img
       live "/profile/previous_uploads", ProfileLive, :previous_uploads
       live "/profile/bio", ProfileLive, :bio
-      live "/friends", FriendsLive
-      live "/friends/current", FriendsLive, :current
-      live "/friends/search", FriendsLive, :search
+
+      live "/friends", FriendsLive.Index
+      live "/friends/search", FriendsLive.Search
+      live "/friends/requests", FriendsLive.Requests
 
       live "/conversations", ConversationsLive.Index, :mine
       live "/conversations/search", ConversationsLive.Search, :search
       live "/conversations/new", ConversationsLive.Search, :search
-      # live "/conversations/:conversation_id", ConversationsLive.Show
     end
   end
 
