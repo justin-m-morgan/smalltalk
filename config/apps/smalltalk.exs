@@ -14,7 +14,12 @@ config :smalltalk, SmalltalkWeb.Endpoint,
   pubsub_server: Smalltalk.PubSub,
   live_view: [signing_salt: "YPdQOk0I"]
 
-config :smalltalk, ash_domains: [Smalltalk.Accounts, Smalltalk.Conversations, Smalltalk.Uploads]
+config :smalltalk,
+  ash_domains: [
+    Smalltalk.Accounts,
+    Smalltalk.Conversations,
+    Smalltalk.Uploads
+  ]
 
 # Configures the mailer
 #

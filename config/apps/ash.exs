@@ -1,5 +1,7 @@
 import Config
 
+alias Smalltalk.{Conversations, Uploads}
+
 config :ash,
   allow_forbidden_field_for_relationships_by_default?: true,
   include_embedded_source_by_default?: false,
@@ -10,4 +12,7 @@ config :ash,
   default_actions_require_atomic?: true,
   read_action_after_action_hooks_in_order?: true,
   bulk_actions_default_to_errors?: true,
-  custom_types: [image_tag: Smalltalk.Uploads.ImageTag]
+  custom_types: [
+    friendship_request_status: Conversations.FriendshipRequestStatus,
+    image_tag: Uploads.ImageTag
+  ]

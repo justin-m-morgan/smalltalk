@@ -5,7 +5,15 @@ defmodule Smalltalk.Conversations.Talker do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Smalltalk.Conversations.{Conversation, Profile, ProfilePic, Participants, ReadReceipt}
+  alias Smalltalk.Conversations.{
+    Conversation,
+    FriendshipRequest,
+    Profile,
+    ProfilePic,
+    Participants,
+    ReadReceipt,
+    Talker
+  }
 
   postgres do
     schema "conversations"
@@ -16,7 +24,16 @@ defmodule Smalltalk.Conversations.Talker do
   actions do
     defaults [:read, :destroy, update: :*]
 
-    read :me do
+    read :me
+
+    read :friend do
+      filter expr(
+               (id != ^actor(:id) &&
+                  (inbound_friendship_requests.status == :accepted and
+                     inbound_friendship_requests.requested_id == ^actor(:id))) ||
+                 (outbound_friendship_requests.status == :accepted and
+                    outbound_friendship_requests.requester_id == ^actor(:id))
+             )
     end
 
     create :create do
@@ -25,11 +42,19 @@ defmodule Smalltalk.Conversations.Talker do
 
       change relate_actor(:user)
     end
+
+    update :current_profile_pic do
+      accept [:current_profile_pic_id]
+    end
   end
 
   policies do
     policy action(:me) do
       authorize_if relates_to_actor_via(:user)
+    end
+
+    policy action_type(:update) do
+      authorize_if expr(^actor(:id) == id)
     end
 
     policy action_type(:read) do
@@ -49,7 +74,7 @@ defmodule Smalltalk.Conversations.Talker do
     belongs_to :user, Smalltalk.Accounts.User
     has_one :profile, Profile
     has_many :profile_pics, ProfilePic
-    has_one :current_profile_pic, ProfilePic, read_action: :current
+    belongs_to :current_profile_pic, ProfilePic
 
     has_many :read_receipts, ReadReceipt
 
@@ -58,6 +83,24 @@ defmodule Smalltalk.Conversations.Talker do
       source_attribute_on_join_resource :talker_id
       destination_attribute_on_join_resource :conversation_id
     end
+
+    has_many :inbound_friendship_requests, FriendshipRequest do
+      destination_attribute :requester_id
+    end
+
+    has_many :outbound_friendship_requests, FriendshipRequest do
+      destination_attribute :requested_id
+    end
+
+    has_many :friends, Talker do
+      read_action :is_friend
+      destination_attribute :id
+    end
+  end
+
+  calculations do
+    calculate :email, :string, expr(user.email)
+    calculate :current_profile_pic_source, :string, expr(current_profile_pic.original_src)
   end
 
   identities do

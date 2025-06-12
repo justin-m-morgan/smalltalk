@@ -96,6 +96,7 @@ defmodule SmalltalkWeb do
         Drawer,
         Flash,
         Forms,
+        Indicators,
         Menu,
         Modal,
         Icon,

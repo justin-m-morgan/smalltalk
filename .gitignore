@@ -39,3 +39,6 @@ npm-debug.log
 
 # Tooling Artifacts
 /.elixir_ls/
+
+# Local Stack persisted data 
+/locals3root/

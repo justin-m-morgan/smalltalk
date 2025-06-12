@@ -12,21 +12,26 @@ defmodule SmalltalkUi.Table do
         <:col :let={user} label="username">{user.username}</:col>
       </.table>
   """
-  attr(:id, :string, required: true)
-  attr(:rows, :list, required: true)
-  attr(:row_id, :any, default: nil, doc: "the function for generating the row id")
-  attr(:row_click, :any, default: nil, doc: "the function for handling phx-click on each row")
 
-  attr(:row_item, :any,
+  attr :id, :string, required: true
+  attr :fixed_width_columns?, :boolean, default: true
+  attr :th_classes, :string, default: nil, doc: "Useful for setting column widths"
+  attr :rows, :list, required: true
+  attr :row_classes, :string, default: nil
+  attr :row_id, :any, default: nil, doc: "the function for generating the row id"
+  attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
+
+  attr :row_item, :any,
     default: &Function.identity/1,
     doc: "the function for mapping each row before calling the :col and :action slots"
-  )
+
+  slot :caption
 
   slot :col, required: true do
-    attr(:label, :string)
+    attr :label, :string
   end
 
-  slot(:action, doc: "the slot for showing user actions in the last table column")
+  slot :action, doc: "the slot for showing user actions in the last table column"
 
   slot :empty_results
 
@@ -37,17 +42,22 @@ defmodule SmalltalkUi.Table do
       end
 
     ~H"""
-    <table class="table">
+    <table class={["table", if(@fixed_width_columns?, do: "table-fixed")]}>
+      <caption class="text-xl font-bold">{render_slot(@caption)}</caption>
       <thead>
         <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
+          <th :for={col <- @col} class={@th_classes}>{col[:label]}</th>
+          <th :if={@action != []} class={@th_classes}>
             <span class="sr-only">{gettext("Actions")}</span>
           </th>
         </tr>
       </thead>
       <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)} class={@row_click && "hover:bg-accent"}>
+        <tr
+          :for={row <- @rows}
+          id={@row_id && @row_id.(row)}
+          class={[@row_click && "hover:bg-accent"]}
+        >
           <td
             :for={col <- @col}
             phx-click={@row_click && @row_click.(row)}

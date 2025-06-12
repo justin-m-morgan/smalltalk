@@ -4,6 +4,8 @@ defmodule Smalltalk.Uploads.Image do
     domain: Smalltalk.Uploads,
     data_layer: AshPostgres.DataLayer
 
+  alias Smalltalk.Uploads.ImageProcessor
+
   alias Smalltalk.Accounts
 
   postgres do
@@ -19,6 +21,16 @@ defmodule Smalltalk.Uploads.Image do
       accept [:s3_root_path, :user_id, :type, :extension]
       upsert? true
       upsert_identity :root_path_type_extension
+    end
+
+    action :image_path, :string do
+      argument :root_path, :string, allow_nil?: false
+      argument :type, :image_tag, allow_nil?: false
+      argument :format, :string, default: ".webp"
+
+      run fn %{arguments: arguments}, _ ->
+        {:ok, ImageProcessor.image_path(arguments.root_path, arguments.type, arguments.format)}
+      end
     end
   end
 

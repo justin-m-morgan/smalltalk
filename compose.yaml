@@ -16,19 +16,19 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  localstack:
-    image: localstack/localstack:s3-latest
-    ports:
-      - "127.0.0.1:4566:4566" # LocalStack Gateway
+  s3mock:
+    image: adobe/s3mock:latest
     environment:
-      - DEBUG=${DEBUG:-0}
-      - DISABLE_CORS_CHECKS=1
-      - S3_SKIP_SIGNATURE_VALIDATION=1
+      - initialBuckets=images
+      - debug=true
+      - retainFilesOnExit=true
+      - root=containers3root
+    ports:
+      - 9090:9090
+      - 9191:9191
     volumes:
-      - s3localstack:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./locals3root:/containers3root
 volumes:
   pgdata:
-  s3localstack:
 
 

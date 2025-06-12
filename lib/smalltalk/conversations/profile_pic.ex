@@ -23,6 +23,17 @@ defmodule Smalltalk.Conversations.ProfilePic do
       accept [:original_src]
 
       change relate_actor(:talker)
+
+      change after_action(fn _changeset, profile_pic, context ->
+               actor = context.actor
+
+               Ash.update!(actor, %{current_profile_pic_id: profile_pic.id},
+                 actor: actor,
+                 action: :current_profile_pic
+               )
+
+               {:ok, profile_pic}
+             end)
     end
   end
 
