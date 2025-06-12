@@ -10,6 +10,7 @@ defmodule Smalltalk.Conversations do
       define :get_me, action: :me, get?: true
       define :all_talkers, action: :read
       define :all_friends, action: :friend
+      define :set_current_profile_pic, action: :current_profile_pic
     end
 
     resource Smalltalk.Conversations.Conversation do

@@ -52,13 +52,12 @@ defmodule Smalltalk.Uploads.ImageProcessor do
   defp type_size(:large), do: 1600
 
   def process_image(root_path, path_suffix, size, extension) do
-    original_path = (root_path <> "/original") |> dbg()
+    original_path = root_path <> "/original"
     new_path = root_path <> "/#{path_suffix}"
 
     @bucket_name
     |> ExAws.S3.get_object(original_path)
     |> ExAws.request!()
-    |> dbg()
     |> Map.get(:body)
     |> Image.from_binary!()
     |> Image.thumbnail!(size)

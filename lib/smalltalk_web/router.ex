@@ -48,11 +48,10 @@ defmodule SmalltalkWeb.Router do
       live "/account/contact", AccountLive, :contact
       live "/account/subscription", AccountLive, :subscription
 
-      live "/profile", ProfileLive
-      live "/profile/edit", ProfileLive, :edit
-      live "/profile/upload_img", ProfileLive, :upload_img
-      live "/profile/previous_uploads", ProfileLive, :previous_uploads
-      live "/profile/bio", ProfileLive, :bio
+      live "/profile/show", ProfileLive.Show
+      live "/profile/edit", ProfileLive.Edit
+      live "/profile/upload_img", ProfileLive.UploadImg
+      live "/profile/previous_uploads", ProfileLive.PreviousUploads
 
       live "/friends", FriendsLive.Index
       live "/friends/search", FriendsLive.Search

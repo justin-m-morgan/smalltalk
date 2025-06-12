@@ -42,11 +42,19 @@ defmodule Smalltalk.Conversations.Talker do
 
       change relate_actor(:user)
     end
+
+    update :current_profile_pic do
+      accept [:current_profile_pic_id]
+    end
   end
 
   policies do
     policy action(:me) do
       authorize_if relates_to_actor_via(:user)
+    end
+
+    policy action_type(:update) do
+      authorize_if expr(^actor(:id) == id)
     end
 
     policy action_type(:read) do
@@ -66,7 +74,7 @@ defmodule Smalltalk.Conversations.Talker do
     belongs_to :user, Smalltalk.Accounts.User
     has_one :profile, Profile
     has_many :profile_pics, ProfilePic
-    has_one :current_profile_pic, ProfilePic, read_action: :current
+    belongs_to :current_profile_pic, ProfilePic
 
     has_many :read_receipts, ReadReceipt
 
@@ -92,6 +100,7 @@ defmodule Smalltalk.Conversations.Talker do
 
   calculations do
     calculate :email, :string, expr(user.email)
+    calculate :current_profile_pic_source, :string, expr(current_profile_pic.original_src)
   end
 
   identities do

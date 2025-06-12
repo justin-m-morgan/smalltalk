@@ -116,7 +116,21 @@ defmodule SmalltalkLayouts.Layouts do
             ]
           },
           profile: %{
-            to: ~p"/profile"
+            to: ~p"/profile/show",
+            sub_menu: [
+              show: %{
+                to: ~p"/profile/show"
+              },
+              edit_details: %{
+                to: ~p"/profile/edit"
+              },
+              upload_image: %{
+                to: ~p"/profile/upload_img"
+              },
+              previous_uploads: %{
+                to: ~p"/profile/previous_uploads"
+              }
+            ]
           },
           friends: %{
             to: ~p"/friends",

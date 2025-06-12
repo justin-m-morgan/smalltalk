@@ -6,5 +6,5 @@ config :ex_aws,
 
 config :ex_aws, :s3,
   scheme: "http://",
-  host: "localhost.localstack.cloud",
-  port: 4566
+  host: "localhost",
+  port: 9090

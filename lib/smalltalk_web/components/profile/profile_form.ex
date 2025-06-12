@@ -14,7 +14,7 @@ defmodule SmalltalkWeb.Components.Profile.ProfileForm do
 
     socket =
       socket
-      |> assign(form: form, actor: actor)
+      |> assign(form: form)
 
     {:ok, socket}
   end
