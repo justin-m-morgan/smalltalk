@@ -17,7 +17,8 @@ defmodule Smalltalk.Application do
       # Start to serve requests, typically the last entry
       SmalltalkWeb.Endpoint,
       Smalltalk.Uploads.ImageProcessor,
-      {AshAuthentication.Supervisor, [otp_app: :smalltalk]}
+      {AshAuthentication.Supervisor, [otp_app: :smalltalk]},
+      SmalltalkWeb.Presence
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

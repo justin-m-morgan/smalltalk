@@ -44,9 +44,9 @@ defmodule SmalltalkWeb.Router do
       ] do
       live "/", HomeLive, :home
 
-      live "/account", AccountLive
-      live "/account/contact", AccountLive, :contact
-      live "/account/subscription", AccountLive, :subscription
+      # live "/account", AccountLive
+      # live "/account/contact", AccountLive, :contact
+      # live "/account/subscription", AccountLive, :subscription
 
       live "/profile/show", ProfileLive.Show
       live "/profile/edit", ProfileLive.Edit
@@ -60,6 +60,8 @@ defmodule SmalltalkWeb.Router do
       live "/conversations", ConversationsLive.Index, :mine
       live "/conversations/search", ConversationsLive.Search, :search
       live "/conversations/new", ConversationsLive.Search, :search
+      live "/conversations/lobby", ConversationsLive.Lobby
+      live "/conversations/:conversation_id", ConversationsLive.Chat
     end
   end
 

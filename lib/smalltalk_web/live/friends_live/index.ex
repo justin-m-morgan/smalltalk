@@ -27,7 +27,6 @@ defmodule SmalltalkWeb.FriendsLive.Index do
         query: [filter: [status: :accepted]],
         actor: actor
       )
-      |> dbg()
 
     socket =
       case Conversations.unfriend(request, actor: actor) do

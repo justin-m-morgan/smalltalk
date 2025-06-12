@@ -24,7 +24,7 @@ defmodule SmalltalkUi.Containers do
           {render_slot(@title)}
         </h2>
         {render_slot(@inner_block)}
-        <div class="card-actions justify-end">
+        <div class="card-actions justify-end mt-auto">
           {render_slot(@actions)}
         </div>
       </div>

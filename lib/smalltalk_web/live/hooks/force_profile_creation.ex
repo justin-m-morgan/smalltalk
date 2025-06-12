@@ -9,12 +9,12 @@ defmodule SmalltalkWeb.Hooks.ForceProfileCreate do
   def on_mount(:default, _params, _session, socket) do
     talker = Ash.load!(socket.assigns.talker, [:profile], authorize?: false)
 
-    if !talker.profile && socket.view != SmalltalkWeb.ProfileLive,
+    if !talker.profile && socket.view != SmalltalkWeb.ProfileLive.Edit,
       do:
         {:halt,
          socket
          |> Phoenix.LiveView.put_flash(:error, "Please create a profile first")
-         |> redirect(to: "/profile")},
+         |> redirect(to: "/profile/edit")},
       else: {:cont, socket}
   end
 end

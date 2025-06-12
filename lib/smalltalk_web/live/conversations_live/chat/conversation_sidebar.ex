@@ -1,4 +1,4 @@
-defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
+defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationSidebar do
   use SmalltalkWeb, :html
 
   def container(assigns) do
@@ -21,7 +21,6 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
     """
   end
 
-  attr :target, :any, required: true
   attr :event_name, :string, required: true
   attr :active?, :boolean, default: false
   attr :active_classes, :string, default: "text-primary-content border-primary"
@@ -54,7 +53,6 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
         role="tab"
         aria-controls={@panel_id}
         aria-selected="false"
-        phx-target={@target}
         phx-click={@event_name}
         phx-value-tab={@panel_id}
       >
@@ -96,18 +94,31 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
       aria-labelledby={"#{@id}-tab"}
     >
       <div class="flex items-center justify-between">
-        <h2 class="font-medium text-base-content">{@title}</h2>
+        <h2 class="font-medium text-base-content pb-2">{@title}</h2>
         {render_slot(@controls)}
       </div>
-      <div class="overflow-y-scroll">
+      <div class="overflow-y-scroll grid gap-4">
         {render_slot(@inner_block)}
       </div>
     </div>
     """
   end
 
+  attr :title, :string, required: true
+  slot :inner_block, required: true
+
+  def panel_group(assigns) do
+    ~H"""
+    <div>
+      <h3 class="text-base-content/70">{@title}</h3>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  attr :id, :string, default: nil
   attr :image_src, :string, required: true
-  attr :status, :atom, values: [:online, :offline], default: :offline
+  attr :online_status, :string, default: "avatar-online"
   attr :name, :string, required: true
   attr :timestamp, :string, required: true
   attr :notification_count, :integer, default: nil
@@ -118,28 +129,25 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
 
   def contact(assigns) do
     ~H"""
-    <li class={[
-      "px-1 py-2",
-      "rounded-lg",
-      "flex items-start justify-between",
-      "hover:cursor-pointer hover:bg-base-100"
-    ]}>
-      <div class="flex items-center gap-3">
-        <div class="relative shrink-0">
-          <img class="h-8 w-8 object-cover rounded-full" src={@image_src} alt={"#{@name} image"} />
-          <span class={[
-            "absolute start-6 top-0
-            h-3.5 w-3.5
-            rounded-full
-            border-2 border-neutral",
-            case @status do
-              :online -> "bg-success"
-              :offline -> "bg-error"
-            end
-          ]}>
-          </span>
-        </div>
-        <div class="leading-1.5 flex w-full flex-col">
+    <li
+      id={@id}
+      class={[
+        "px-1 py-2",
+        "rounded-lg",
+        "flex items-start justify-between",
+        "hover:cursor-pointer hover:bg-base-100"
+      ]}
+    >
+      <div class="flex justify-between items-center gap-3 w-full">
+        <DataBlocks.avatar
+          src={@image_src}
+          alt_text={"#{@name} image"}
+          image_type={:thumbnail}
+          size="size-10"
+          online_status={@online_status}
+        />
+
+        <div class="flex w-full flex-col">
           <span class="text-base font-medium text-base-content">{@name}</span>
           <p
             :if={Enum.any?(@subtext)}
@@ -148,14 +156,31 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
             {render_slot(@subtext)}
           </p>
         </div>
-      </div>
 
-      <div class="shrink-0">
-        <span class="text-xs text-base-content/50">{@timestamp}</span>
+        <p class="shrink-0 grow-1 text-xs text-base-content/50">
+          {pretty_timestamp(@timestamp)}
+        </p>
       </div>
     </li>
     """
   end
+
+  defp pretty_timestamp(%DateTime{} = timestamp) do
+    now = DateTime.utc_now()
+
+    cond do
+      (diff = Timex.diff(now, timestamp, :day)) > 1 ->
+        "#{pluralize("day", diff)} ago"
+
+      (diff = Timex.diff(now, timestamp, :hour)) > 1 ->
+        "#{pluralize("hour", diff)} ago"
+
+      (diff = Timex.diff(now, timestamp, :minute)) > 1 ->
+        "#{pluralize("minute", diff)} ago"
+    end
+  end
+
+  defp pretty_timestamp(_timestamp), do: ""
 
   attr :participants, :list, required: true
   slot :label, required: true
@@ -172,4 +197,7 @@ defmodule SmalltalkWeb.Components.Chat.ConversationSidebar do
     </div>
     """
   end
+
+  defp pluralize(word, 1), do: "1 #{word}"
+  defp pluralize(word, count), do: "#{count} #{word}s"
 end

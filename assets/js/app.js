@@ -25,6 +25,7 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import ChatWindow from "./hooks/chat_window"
 import Uploaders from "./uploader"
+// import "./user_socket.js"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {

@@ -1,4 +1,4 @@
-defmodule SmalltalkWeb.Components.Chat.Messages do
+defmodule SmalltalkWeb.ConversationsLive.Chat.Messages do
   use SmalltalkWeb, :html
 
   alias Smalltalk.Uploads
@@ -99,7 +99,7 @@ defmodule SmalltalkWeb.Components.Chat.Messages do
       <div class={["rounded-full", @size]}>
         <img
           src={
-            Uploads.ImageProcessor.image_path(
+            Uploads.image_path(
               @src,
               :thumbnail
             )

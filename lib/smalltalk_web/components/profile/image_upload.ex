@@ -4,6 +4,8 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   alias Smalltalk.Conversations
   alias Smalltalk.Uploads.ImageProcessor
 
+  require Logger
+
   @impl Phoenix.LiveComponent
   def update(assigns, socket) do
     accepted_file_types = ~w(.jpg .jpeg)
@@ -60,7 +62,7 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:too_many_files), do: "You have selected too many files"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
-  defp error_to_string(error), do: dbg(error)
+  defp error_to_string(error), do: Logger.error(error)
 
   @impl Phoenix.LiveComponent
 

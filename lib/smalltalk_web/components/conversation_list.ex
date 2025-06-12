@@ -24,7 +24,6 @@ defmodule SmalltalkWeb.Components.ConversationList do
   end
 
   @impl true
-  @spec handle_event(<<_::32, _::_*8>>, map(), any()) :: {:noreply, any()}
   def handle_event("validate", unsigned_params, socket) do
     form = socket.assigns.new_conversation_form
     params = Map.get(unsigned_params, form.name)
@@ -151,6 +150,18 @@ defmodule SmalltalkWeb.Components.ConversationList do
     <Table.table id="conversations" rows={@rows}>
       <:col :let={{_id, conversation}} label="Short Name">{conversation.short_name}</:col>
       <:col :let={{_id, conversation}} label="Description">{conversation.description}</:col>
+      <:col :let={{_id, conversation}} label="Participants">
+        <DataBlocks.avatar_group data={conversation.participants}>
+          <:avatar_template :let={participant}>
+            <DataBlocks.avatar
+              size="size-8"
+              src={participant.talker.current_profile_pic_source}
+              image_type={:thumbnail}
+              alt_text={"#{participant.talker.full_name}"}
+            />
+          </:avatar_template>
+        </DataBlocks.avatar_group>
+      </:col>
       <:action :let={{_dom_id, conversation}}>
         <%= if @actor_id in Enum.map(conversation.participants, & &1.talker_id) do %>
           <Button.button
