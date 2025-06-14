@@ -49,6 +49,8 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
             ],
             actor: actor
           )
+
+          # JS.dispatch(@event_name, to: "##{@target}", detail: %{"direction" => @direction})
         end
       )
       |> stream(:presences, Presence.list_online_users(presence_topic))
@@ -241,7 +243,6 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
                   id={dom_id}
                   image_src={participant.current_profile_pic_source}
                   name={participant.full_name}
-                  timestamp=""
                 >
                   <:subtext></:subtext>
                 </Chat.ConversationSidebar.contact>
@@ -253,7 +254,7 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
                 <div id="offline_participants_stream" phx-update="stream">
                   <Chat.ConversationSidebar.contact
                     :for={{dom_id, participant} <- @streams[stream_key]}
-                    id={dom_id |> dbg()}
+                    id={dom_id}
                     image_src={participant.talker.current_profile_pic_source}
                     name={participant.talker.full_name}
                     timestamp={participant.last_active}
@@ -327,7 +328,8 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
                   </:right_gutter>
                   <Chat.Messages.contact_info
                     name={message.talker.profile.first_name}
-                    timestamp={format_time(message.id)}
+                    uuid_timestamp={message.id}
+                    formatted_timestamp={format_time(message.id)}
                   />
                   <Chat.Messages.message_bubble mine?={@actor.id == message.talker_id}>
                     {message.content}
@@ -403,10 +405,7 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
     time_portion = "{h12}:{m}:{s} {AM} (UTC)"
     date_portion = "{D} {Mshort}, {YYYY} ({WDshort})"
 
-    format =
-      if Timex.compare(timestamp, DateTime.utc_now(), :day) < 0,
-        do: time_portion <> ", " <> date_portion,
-        else: time_portion
+    format = time_portion <> ", " <> date_portion
 
     Timex.format!(timestamp, format)
   end

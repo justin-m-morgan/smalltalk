@@ -113,7 +113,8 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.Messages do
 
   attr :mine?, :boolean, default: false
   attr :name, :string, required: true
-  attr :timestamp, :string, required: true
+  attr :uuid_timestamp, :string, required: true
+  attr :formatted_timestamp, :string, required: true
 
   def contact_info(assigns) do
     ~H"""
@@ -128,7 +129,10 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.Messages do
       >
         {@name}
       </a>
-      <span class="text-sm font-normal text-base-content/70">{@timestamp}</span>
+      <DataBlocks.timestamp
+        id={"#{@uuid_timestamp}-message-timestamp"}
+        uuid_timestamp={@uuid_timestamp}
+      />
     </div>
     """
   end

@@ -120,7 +120,8 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationSidebar do
   attr :image_src, :string, required: true
   attr :online_status, :string, default: "avatar-online"
   attr :name, :string, required: true
-  attr :timestamp, :string, required: true
+
+  attr :timestamp, :string, default: nil
   attr :notification_count, :integer, default: nil
 
   slot :subtext, doc: "Displays below name (ex. Latest message truncated)" do
@@ -158,29 +159,12 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationSidebar do
         </div>
 
         <p class="shrink-0 grow-1 text-xs text-base-content/50">
-          {pretty_timestamp(@timestamp)}
+          <DataBlocks.timestamp id={"participant-#{@id}-timestamp"} timestamp={@timestamp} />
         </p>
       </div>
     </li>
     """
   end
-
-  defp pretty_timestamp(%DateTime{} = timestamp) do
-    now = DateTime.utc_now()
-
-    cond do
-      (diff = Timex.diff(now, timestamp, :day)) > 1 ->
-        "#{pluralize("day", diff)} ago"
-
-      (diff = Timex.diff(now, timestamp, :hour)) > 1 ->
-        "#{pluralize("hour", diff)} ago"
-
-      (diff = Timex.diff(now, timestamp, :minute)) > 1 ->
-        "#{pluralize("minute", diff)} ago"
-    end
-  end
-
-  defp pretty_timestamp(_timestamp), do: ""
 
   attr :participants, :list, required: true
   slot :label, required: true

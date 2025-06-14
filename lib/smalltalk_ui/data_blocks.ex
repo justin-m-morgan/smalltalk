@@ -58,4 +58,45 @@ defmodule SmalltalkUi.DataBlocks do
     </div>
     """
   end
+
+  attr :id, :string
+  attr :uuid_timestamp, :string, default: nil
+  attr :timestamp, DateTime
+  attr :format, :atom, default: :default, values: [:default]
+  attr :dynamic?, :boolean, default: true
+
+  def timestamp(%{uuid_timestamp: nil, timestamp: nil} = assigns) do
+    ~H"""
+    """
+  end
+
+  def timestamp(assigns) do
+    assigns =
+      if assigns.uuid_timestamp,
+        do: assign(assigns, :timestamp, datetime_from_uuid(assigns.uuid_timestamp)),
+        else: assigns
+
+    ~H"""
+    <span
+      id={@id}
+      phx-hook={if(@dynamic?, do: "ResponsiveTimestamp")}
+      data-timestamp={DateTime.to_iso8601(@timestamp)}
+    >
+      {Timex.format!(@timestamp, timestamp_format(@format))}
+    </span>
+    """
+  end
+
+  defp timestamp_format(:time), do: "{h12}:{m}:{s} {AM} (UTC)"
+  defp timestamp_format(:wd_short), do: "({WDshort})"
+  defp timestamp_format(:date), do: "{D} {Mshort}, {YYYY}"
+
+  defp timestamp_format(:default),
+    do: "#{timestamp_format(:date)} #{timestamp_format(:wd_short)}, #{timestamp_format(:time)}"
+
+  defp datetime_from_uuid(uuid) do
+    uuid
+    |> Ash.UUIDv7.extract_timestamp()
+    |> DateTime.from_unix!(:millisecond)
+  end
 end
