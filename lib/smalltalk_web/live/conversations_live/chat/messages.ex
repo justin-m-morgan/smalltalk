@@ -2,68 +2,47 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.Messages do
   use SmalltalkWeb, :html
 
   alias Smalltalk.Uploads
-  alias Phoenix.LiveView.JS
 
   attr :id, :string, required: true
   attr :rest, :global, include: ~w/phx-update data-event-name/
 
+  slot :top_overlay_controls
+  slot :bottom_overlay_controls
   slot :inner_block, required: true
 
   def container(assigns) do
     assigns = assign(assigns, event_name: Map.get(assigns.rest, :"data-event-name"))
 
     ~H"""
-    <div
-      id={@id}
-      class={[
-        "grid grid-cols-[3rem_1fr_3rem] gap-2",
-        "overflow-y-scroll"
-      ]}
-      {@rest}
-    >
-      <.scroll_btn
-        id="btn-up"
-        icon_name="hero-arrow-up"
-        event_name={@event_name}
-        direction="top"
-        target={@id}
-      />
-      <.scroll_btn
-        id="btn-up"
-        icon_name="hero-arrow-down"
-        event_name={@event_name}
-        direction="bottom"
-        target={@id}
-      />
-      {render_slot(@inner_block)}
+    <div class="relative h-full overflow-hidden">
+      <div>
+        <div
+          :for={slot <- [@top_overlay_controls, @bottom_overlay_controls]}
+          class={[
+            "absolute",
+            "flex justify-center w-full",
+            "opacity-10 hover:opacity-100 transition-opacity",
+            "first:mt-2 last:mb-2 last:bottom-0",
+            "overflow-hidden"
+          ]}
+        >
+          {render_slot(slot)}
+        </div>
+      </div>
+
+      <div
+        id={@id}
+        phx-update="stream"
+        class={[
+          "h-full",
+          "grid grid-cols-[3rem_1fr_3rem] gap-2",
+          "overflow-y-scroll"
+        ]}
+        {@rest}
+      >
+        {render_slot(@inner_block)}
+      </div>
     </div>
-    """
-  end
-
-  attr :id, :string, required: true
-  attr :icon_name, :string, required: true
-  attr :event_name, :string, required: true
-  attr :target, :string, required: true, doc: "DOM element with the event listener"
-  attr :direction, :string, values: ["top", "bottom"], required: true
-
-  def scroll_btn(assigns) do
-    ~H"""
-    <button
-      type="button"
-      phx-click={JS.dispatch(@event_name, to: "##{@target}", detail: %{"direction" => @direction})}
-      class={[
-        "cursor-pointer",
-        "absolute left-1/2",
-        if(@direction == "bottom", do: "bottom-0"),
-        "size-16",
-        "flex items-center justify-center",
-        "bg-accent rounded-full",
-        "opacity-20 hover:opacity-100",
-        "transition-opacity transition-200"
-      ]}
-    >
-      <Icon.icon name={@icon_name} class="size-12" />
-    </button>
     """
   end
 

@@ -11,16 +11,24 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
   @impl true
   def handle_params(%{"conversation_id" => conversation_id}, _uri, socket) do
     actor = socket.assigns.talker
-    self = self()
 
     new_messages_pubsub_topic =
       Conversations.subscribe_to_new_messages!(conversation_id, actor: actor)
 
     presence_topic = "conversation:#{conversation_id}"
 
+    initial_message_load_count = 5
+
+    self = self()
+
     socket =
       socket
       |> assign(
+        pagination: %{
+          offset: initial_message_load_count,
+          limit: initial_message_load_count,
+          more?: false
+        },
         conversation_id: conversation_id,
         actor: actor,
         new_messages_topic: new_messages_pubsub_topic,
@@ -41,16 +49,20 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
       |> stream_async(
         :messages,
         fn ->
-          Conversations.get_messages_for_conversation!(
-            %{conversation_id: conversation_id},
-            load: [
-              talker: @talker_preloads,
-              read_receipts: [talker: @talker_preloads]
-            ],
-            actor: actor
-          )
+          %{results: results, more?: more?, offset: offset} =
+            Conversations.get_messages_for_conversation!(
+              %{conversation_id: conversation_id},
+              page: [limit: initial_message_load_count, offset: 0],
+              load: [
+                talker: @talker_preloads,
+                read_receipts: [talker: @talker_preloads]
+              ],
+              actor: actor
+            )
 
-          # JS.dispatch(@event_name, to: "##{@target}", detail: %{"direction" => @direction})
+          send(self, {:update_pagination, offset, more?})
+
+          Enum.reverse(results)
         end
       )
       |> stream(:presences, Presence.list_online_users(presence_topic))
@@ -99,6 +111,37 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
         {:error, form} ->
           assign(socket, form: form)
       end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("load_more_messages", _unsigned_params, socket) do
+    pagination = socket.assigns.pagination
+    actor = socket.assigns.actor
+    conversation_id = socket.assigns.conversation_id
+
+    page =
+      pagination
+      |> Map.update!(:offset, fn offset -> pagination.limit + offset end)
+      |> Map.drop([:more?])
+
+    %{results: results, more?: more?, offset: offset} =
+      Conversations.get_messages_for_conversation!(
+        %{conversation_id: conversation_id},
+        page: page,
+        load: [
+          talker: @talker_preloads,
+          read_receipts: [talker: @talker_preloads]
+        ],
+        actor: actor
+      )
+
+    send(self(), {:update_pagination, offset, more?})
+
+    socket =
+      Enum.reduce(results, socket, fn result, socket ->
+        stream_insert(socket, :messages, result, at: 0)
+      end)
 
     {:noreply, socket}
   end
@@ -163,6 +206,17 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
         end,
         replace: true
       )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:update_pagination, offset, more?}, socket) do
+    pagination =
+      socket.assigns.pagination
+      |> Map.put(:more?, more?)
+      |> Map.put(:offset, offset)
+
+    socket = assign(socket, pagination: pagination)
 
     {:noreply, socket}
   end
@@ -283,14 +337,39 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
           </Chat.ConversationSidebar.panel>
         </div>
 
-        <div class="flex flex-col justify-between relative">
-          <div class="overflow-scroll">
+        <div class="flex flex-col justify-between">
+          <div class="overflow-scroll h-full">
             <Chat.Messages.container
               id="messages-stream-container"
               phx-hook="ChatWindow"
               data-event-name="chat-window"
-              phx-update="stream"
             >
+              <:top_overlay_controls>
+                <Button.button
+                  :if={@pagination.more?}
+                  color="btn-accent"
+                  type="button"
+                  class="absolute left-1/2 top-0"
+                  phx-click="load_more_messages"
+                >
+                  <Icon.icon name="hero-plus" class="size-6" /> Load More
+                </Button.button>
+              </:top_overlay_controls>
+              <:bottom_overlay_controls>
+                <Button.button
+                  color="btn-accent"
+                  size="btn-xl"
+                  size_modifier="btn-circle"
+                  phx-click={
+                    JS.dispatch("chat-window",
+                      to: "#messages-stream-container",
+                      detail: %{"direction" => "bottom"}
+                    )
+                  }
+                >
+                  <Icon.icon name="hero-arrow-down" class="size-6" />
+                </Button.button>
+              </:bottom_overlay_controls>
               <.async_result :let={stream_key} assign={@messages}>
                 <:failed>Failed to Load Conversation</:failed>
 

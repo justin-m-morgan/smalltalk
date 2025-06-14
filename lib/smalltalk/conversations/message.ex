@@ -17,6 +17,13 @@ defmodule Smalltalk.Conversations.Message do
     defaults [:read, :destroy, update: :*]
 
     read :read_by_conversation_id do
+      prepare build(sort: [id: :desc])
+
+      pagination do
+        required? false
+        offset? true
+      end
+
       argument :conversation_id, :uuid_v7, allow_nil?: false
       filter expr(conversation_id == ^arg(:conversation_id))
     end

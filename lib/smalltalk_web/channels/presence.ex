@@ -26,7 +26,7 @@ defmodule SmalltalkWeb.Presence do
     end
   end
 
-  def fetch("conversation:" <> conversation_id, presences) do
+  def fetch("conversation:" <> _conversation_id, presences) do
     limited_talker_data = fetch_all_users(presences)
 
     for {key, %{metas: [meta | metas]}} <- presences, into: %{} do

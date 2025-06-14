@@ -38,6 +38,7 @@ defmodule Smalltalk.Conversations.Participants do
     end
 
     update :last_active do
+      require_atomic? false
       change set_attribute(:last_active, &DateTime.utc_now/0)
     end
 
@@ -77,11 +78,7 @@ defmodule Smalltalk.Conversations.Participants do
       authorize_if actor_present()
     end
 
-    policy action_type(:update) do
-      authorize_if relates_to_actor_via(:talker)
-    end
-
-    policy action_type(:destroy) do
+    policy action_type([:update, :destroy]) do
       authorize_if relates_to_actor_via(:talker)
     end
 

@@ -181,7 +181,4 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationSidebar do
     </div>
     """
   end
-
-  defp pluralize(word, 1), do: "1 #{word}"
-  defp pluralize(word, count), do: "#{count} #{word}s"
 end

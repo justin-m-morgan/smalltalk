@@ -4,6 +4,8 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
 
   alias Smalltalk.Conversations
 
+  require Logger
+
   @preloads [participants: [talker: [:full_name, :current_profile_pic_source]]]
 
   @impl true

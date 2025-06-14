@@ -50,8 +50,6 @@ setInterval(() => {
     .forEach((node) => {
       node.innerText = ResponsiveTimestamp.formatTimeSince(node);
     });
-
-  console.log(dynamicTimestamps);
 }, 60000);
 
 // connect if there are any LiveViews on the page
