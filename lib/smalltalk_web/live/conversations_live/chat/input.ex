@@ -1,4 +1,4 @@
-defmodule SmalltalkWeb.Components.Chat.Input do
+defmodule SmalltalkWeb.ConversationsLive.Chat.Input do
   use SmalltalkWeb, :html
 
   def text_area(assigns) do

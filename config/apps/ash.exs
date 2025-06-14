@@ -14,5 +14,6 @@ config :ash,
   bulk_actions_default_to_errors?: true,
   custom_types: [
     friendship_request_status: Conversations.FriendshipRequestStatus,
-    image_tag: Uploads.ImageTag
+    image_tag: Uploads.ImageTag,
+    image_format: Uploads.ImageFormat
   ]

@@ -26,10 +26,11 @@ defmodule Smalltalk.Uploads.Image do
     action :image_path, :string do
       argument :root_path, :string, allow_nil?: false
       argument :type, :image_tag, allow_nil?: false
-      argument :format, :string, default: ".webp"
+      argument :format, :image_format, default: :webp
 
       run fn %{arguments: arguments}, _ ->
-        {:ok, ImageProcessor.image_path(arguments.root_path, arguments.type, arguments.format)}
+        {:ok,
+         ImageProcessor.image_path(arguments.root_path, arguments.type, ".#{arguments.format}")}
       end
     end
   end

@@ -4,6 +4,8 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
   alias Smalltalk.Conversations
   alias Smalltalk.Uploads.ImageProcessor
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
     actor = socket.assigns.talker
@@ -54,8 +56,6 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
         {:ok, s3_path}
       end)
 
-    dbg(uploaded_files)
-
     socket =
       socket
       |> put_flash(:success, "Profile picture updated successfully")
@@ -67,7 +67,7 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
   defp error_to_string(:too_large), do: "Too large"
   defp error_to_string(:too_many_files), do: "You have selected too many files"
   defp error_to_string(:not_accepted), do: "You have selected an unacceptable file type"
-  defp error_to_string(error), do: dbg(error)
+  defp error_to_string(error), do: Logger.error(error)
 
   @impl true
 

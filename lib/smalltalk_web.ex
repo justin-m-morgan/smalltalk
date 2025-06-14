@@ -92,6 +92,7 @@ defmodule SmalltalkWeb do
       alias SmalltalkUi.{
         Button,
         Containers,
+        DataBlocks,
         Dock,
         Drawer,
         Flash,

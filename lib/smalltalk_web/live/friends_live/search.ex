@@ -66,8 +66,6 @@ defmodule SmalltalkWeb.FriendsLive.Search do
              load: [requested: @talker_preloads]
            ) do
         {:ok, request} ->
-          dbg(request.requested)
-
           socket
           |> stream_insert(:friends, request.requested)
           |> put_flash(:success, "Friend request sent")

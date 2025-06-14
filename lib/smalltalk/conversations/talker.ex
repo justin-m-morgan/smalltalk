@@ -100,6 +100,7 @@ defmodule Smalltalk.Conversations.Talker do
 
   calculations do
     calculate :email, :string, expr(user.email)
+    calculate :full_name, :string, expr(profile.first_name <> " " <> profile.last_name)
     calculate :current_profile_pic_source, :string, expr(current_profile_pic.original_src)
   end
 

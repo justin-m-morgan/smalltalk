@@ -2,7 +2,8 @@ defmodule Smalltalk.Conversations.Message do
   use Ash.Resource,
     otp_app: :smalltalk,
     domain: Smalltalk.Conversations,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    notifiers: [Ash.Notifier.PubSub]
 
   alias Smalltalk.Conversations.{Conversation, ReadReceipt, Talker}
 
@@ -16,6 +17,13 @@ defmodule Smalltalk.Conversations.Message do
     defaults [:read, :destroy, update: :*]
 
     read :read_by_conversation_id do
+      prepare build(sort: [id: :desc])
+
+      pagination do
+        required? false
+        offset? true
+      end
+
       argument :conversation_id, :uuid_v7, allow_nil?: false
       filter expr(conversation_id == ^arg(:conversation_id))
     end
@@ -27,6 +35,20 @@ defmodule Smalltalk.Conversations.Message do
 
       change relate_actor(:talker)
     end
+
+    action :subscribe_to_new_messages, :string do
+      argument :conversation_id, :uuid_v7, allow_nil?: false
+
+      run fn %{arguments: %{conversation_id: conversation_id}}, _ ->
+        {:ok, "messages:conversation:#{conversation_id}"}
+      end
+    end
+  end
+
+  pub_sub do
+    module SmalltalkWeb.Endpoint
+
+    publish :create, ["messages", "conversation", :conversation_id]
   end
 
   attributes do

@@ -104,17 +104,17 @@ defmodule SmalltalkLayouts.Layouts do
           home: %{
             to: ~p"/"
           },
-          account: %{
-            to: ~p"/account",
-            sub_menu: [
-              contact: %{
-                to: ~p"/account/contact"
-              },
-              subscription: %{
-                to: ~p"/account/subscription"
-              }
-            ]
-          },
+          # account: %{
+          #   to: ~p"/account",
+          #   sub_menu: [
+          #     contact: %{
+          #       to: ~p"/account/contact"
+          #     },
+          #     subscription: %{
+          #       to: ~p"/account/subscription"
+          #     }
+          #   ]
+          # },
           profile: %{
             to: ~p"/profile/show",
             sub_menu: [
@@ -151,6 +151,9 @@ defmodule SmalltalkLayouts.Layouts do
             sub_menu: [
               mine: %{
                 to: ~p"/conversations/"
+              },
+              lobby: %{
+                to: ~p"/conversations/lobby"
               },
               search: %{
                 to: ~p"/conversations/search"

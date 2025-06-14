@@ -7,6 +7,7 @@ defmodule Smalltalk.Conversations do
     resource Smalltalk.Conversations.Talker do
       define :create_talker, action: :create
       define :get_talker, action: :read, get?: true
+      define :get_talker_by_id, action: :read, get_by: :id
       define :get_me, action: :me, get?: true
       define :all_talkers, action: :read
       define :all_friends, action: :friend
@@ -31,6 +32,8 @@ defmodule Smalltalk.Conversations do
 
       define :get_messages_for_conversation,
         action: :read_by_conversation_id
+
+      define :subscribe_to_new_messages, args: [:conversation_id]
     end
 
     resource Smalltalk.Conversations.ReadReceipt do
@@ -40,6 +43,12 @@ defmodule Smalltalk.Conversations do
     resource Smalltalk.Conversations.Participants do
       define :join_conversation, action: :join, args: [:conversation_id]
       define :leave_conversation, action: :leave, args: [:conversation_id]
+      define :update_last_active, action: :last_active
+      define :participants, action: :read
+
+      define :participants_not_present,
+        action: :excluding_presence,
+        args: [:conversation_id, :presence_ids]
     end
 
     resource Smalltalk.Conversations.ProfilePic do
