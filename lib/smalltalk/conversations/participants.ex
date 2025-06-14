@@ -17,12 +17,20 @@ defmodule Smalltalk.Conversations.Participants do
   actions do
     defaults [:read]
 
+    read :blocked do
+      argument :conversation_id, :uuid_v7
+
+      filter expr(conversation_id == ^arg(:conversation_id))
+      filter expr(blocked?)
+    end
+
     read :excluding_presence do
       argument :conversation_id, :uuid_v7
       argument :presence_ids, {:array, :uuid_v7}
 
       filter expr(conversation_id == ^arg(:conversation_id))
       filter expr(talker_id not in ^arg(:presence_ids))
+      filter expr(not blocked?)
     end
 
     create :join do
@@ -67,9 +75,21 @@ defmodule Smalltalk.Conversations.Participants do
         end
       end
     end
+
+    update :block do
+      change set_attribute(:blocked?, true)
+    end
+
+    update :unblock do
+      change set_attribute(:blocked?, false)
+    end
   end
 
   policies do
+    policy action([:unblock, :block]) do
+      authorize_if relates_to_actor_via([:conversation, :admins, :talker])
+    end
+
     policy action_type(:read) do
       authorize_if always()
     end
@@ -83,6 +103,7 @@ defmodule Smalltalk.Conversations.Participants do
     end
 
     policy action(:leave) do
+      # Can't use filter checks with generic actions
       authorize_if always()
     end
   end
@@ -92,6 +113,7 @@ defmodule Smalltalk.Conversations.Participants do
 
     attribute :left_at, :datetime
     attribute :last_active, :datetime
+    attribute :blocked?, :boolean, default: false
   end
 
   relationships do

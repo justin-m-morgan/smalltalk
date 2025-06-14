@@ -6,6 +6,7 @@ defmodule Smalltalk.Conversations.Talker do
     authorizers: [Ash.Policy.Authorizer]
 
   alias Smalltalk.Conversations.{
+    Admin,
     Conversation,
     FriendshipRequest,
     Profile,
@@ -96,12 +97,20 @@ defmodule Smalltalk.Conversations.Talker do
       read_action :is_friend
       destination_attribute :id
     end
+
+    has_many :admins, Admin
   end
 
   calculations do
     calculate :email, :string, expr(user.email)
     calculate :full_name, :string, expr(profile.first_name <> " " <> profile.last_name)
     calculate :current_profile_pic_source, :string, expr(current_profile_pic.original_src)
+
+    calculate :is_admin?, :boolean, expr(admins.conversation_id == args(:conversation_id)) do
+      argument :conversation_id, :uuid_v7 do
+        allow_nil? false
+      end
+    end
   end
 
   identities do

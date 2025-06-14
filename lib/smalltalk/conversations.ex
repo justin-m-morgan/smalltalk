@@ -49,6 +49,13 @@ defmodule Smalltalk.Conversations do
       define :participants_not_present,
         action: :excluding_presence,
         args: [:conversation_id, :presence_ids]
+
+      define :participants_blocked,
+        action: :blocked,
+        args: [:conversation_id]
+
+      define :get_participant, action: :read, get_by: :id
+      define :unblock_participant, action: :unblock
     end
 
     resource Smalltalk.Conversations.ProfilePic do
@@ -66,6 +73,10 @@ defmodule Smalltalk.Conversations do
       define :revive_friend_request, action: :cancel
       define :get_friend_request, action: :by_talker_id, args: [:talker_id], get?: true
       define :unfriend
+    end
+
+    resource Smalltalk.Conversations.Admin do
+      define :admins_for_conversation, action: :for_conversation, args: [:conversation_id]
     end
   end
 end

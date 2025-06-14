@@ -5,7 +5,7 @@ defmodule Smalltalk.Conversations.Conversation do
     data_layer: AshPostgres.DataLayer,
     authorizers: [Ash.Policy.Authorizer]
 
-  alias Smalltalk.Conversations.{Message, Participants}
+  alias Smalltalk.Conversations.{Admin, Message, Participants}
 
   postgres do
     schema "conversations"
@@ -23,9 +23,11 @@ defmodule Smalltalk.Conversations.Conversation do
     create :create do
       primary? true
       argument :participants, :map, default: %{}
+      argument :admins, :map, default: %{}
       accept [:short_name, :description]
 
       change manage_relationship(:participants, type: :create)
+      change manage_relationship(:admins, type: :create)
     end
   end
 
@@ -52,5 +54,7 @@ defmodule Smalltalk.Conversations.Conversation do
     has_many :participants, Participants do
       filter expr(is_nil(left_at))
     end
+
+    has_many :admins, Admin
   end
 end
