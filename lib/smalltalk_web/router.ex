@@ -62,6 +62,7 @@ defmodule SmalltalkWeb.Router do
       live "/conversations/new", ConversationsLive.Search, :search
       live "/conversations/lobby", ConversationsLive.Lobby
       live "/conversations/:conversation_id", ConversationsLive.Chat
+      live "/conversations/:conversation_id/admin", ConversationsLive.Chat.Admin
     end
   end
 

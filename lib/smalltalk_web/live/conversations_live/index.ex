@@ -111,9 +111,9 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
       talker={@talker}
     >
       <Containers.header>
-        Find New Conversations
+        My Conversations
         <:subtitle>
-          Search conversations by keyword or user.
+          Jump back into one of your subscribed conversations
         </:subtitle>
       </Containers.header>
 

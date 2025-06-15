@@ -4,7 +4,7 @@ defmodule SmalltalkUi.DataBlocks do
   alias Smalltalk.Uploads
 
   attr :online_status, :string, default: nil, values: ["avatar-online", "avatar-offline", nil]
-  attr :size, :string, default: "w-8"
+  attr :size, :string, default: "size-8"
   attr :rounded?, :boolean, default: true
   attr :src, :string, required: true
   attr :image_type, :atom, values: Uploads.ImageTag.values()
@@ -32,7 +32,7 @@ defmodule SmalltalkUi.DataBlocks do
 
   attr :display_count, :integer, default: 3
   attr :data, :list, required: true
-  attr :size, :string, default: "w-8"
+  attr :size, :string, default: "size-8"
 
   slot :avatar_template, required: true
 
@@ -45,7 +45,7 @@ defmodule SmalltalkUi.DataBlocks do
       )
 
     ~H"""
-    <div class="avatar-group -space-x-6">
+    <div class="avatar-group -space-x-3">
       <%= for item <- Enum.take(@data, @display_count) do %>
         {render_slot(@avatar_template, item)}
       <% end %>
@@ -63,7 +63,7 @@ defmodule SmalltalkUi.DataBlocks do
   attr :uuid_timestamp, :string, default: nil
   attr :timestamp, DateTime
   attr :format, :atom, default: :default, values: [:default]
-  attr :dynamic?, :boolean, default: true
+  attr :dynamic?, :boolean, default: true, doc: "Uses JS to update at regular intervals"
 
   def timestamp(%{uuid_timestamp: nil, timestamp: nil} = assigns) do
     ~H"""

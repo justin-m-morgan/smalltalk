@@ -17,3 +17,7 @@ config :ash,
     image_tag: Uploads.ImageTag,
     image_format: Uploads.ImageFormat
   ]
+
+if Mix.env() == :dev do
+  config :ash, :policies, show_policy_breakdowns?: true
+end

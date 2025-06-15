@@ -86,10 +86,6 @@ defmodule Smalltalk.Conversations.Participants do
   end
 
   policies do
-    policy action([:unblock, :block]) do
-      authorize_if relates_to_actor_via([:conversation, :admins, :talker])
-    end
-
     policy action_type(:read) do
       authorize_if always()
     end
@@ -98,13 +94,26 @@ defmodule Smalltalk.Conversations.Participants do
       authorize_if actor_present()
     end
 
-    policy action_type([:update, :destroy]) do
+    policy action_type([:destroy]) do
+      authorize_if relates_to_actor_via(:talker)
+    end
+
+    policy action([:last_active]) do
       authorize_if relates_to_actor_via(:talker)
     end
 
     policy action(:leave) do
       # Can't use filter checks with generic actions
       authorize_if always()
+    end
+
+    policy action(:unblock) do
+      # authorize_if always()
+      authorize_if relates_to_actor_via([:conversation, :admins, :talker])
+    end
+
+    policy action(:block) do
+      authorize_if relates_to_actor_via([:conversation, :admins, :talker])
     end
   end
 

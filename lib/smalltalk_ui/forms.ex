@@ -271,7 +271,7 @@ defmodule SmalltalkUi.Forms do
     <.form for={@form} id={@id} {@rest}>
       {render_slot(@inner_block)}
       <footer class={@actions_container_classes}>
-        <Button.button size={@submit_button_size}>
+        <Button.button size={@submit_button_size} phx-disable-with="Saving...">
           <%= if Enum.any?(@submit_button) do %>
             {render_slot(@submit_button)}
           <% else %>

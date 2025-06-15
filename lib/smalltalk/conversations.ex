@@ -55,6 +55,11 @@ defmodule Smalltalk.Conversations do
         args: [:conversation_id]
 
       define :get_participant, action: :read, get_by: :id
+
+      define :get_participant_by_actor_conversation,
+        action: :read,
+        get_by_identity: :unique_talker
+
       define :unblock_participant, action: :unblock
     end
 

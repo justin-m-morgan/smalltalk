@@ -2,6 +2,9 @@ export default {
   mounted() {
     this.el.innerText = this.formatTimeSince(this.el);
   },
+  updated() {
+    this.el.innerText = this.formatTimeSince(this.el);
+  },
   formatTimeSince(node) {
     let timestamp = node.dataset.timestamp;
 
