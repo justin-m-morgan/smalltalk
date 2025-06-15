@@ -166,16 +166,28 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationSidebar do
     """
   end
 
+  attr :id, :string, required: true
   attr :participants, :list, required: true
   slot :label, required: true
+  slot :actions
 
   def participant_group(assigns) do
     ~H"""
-    <div>
-      <h2 class="text-base-content/70">{render_slot(@label)}</h2>
-      <ul>
-        <li :for={participant <- @participants}>
-          {participant.talker.profile.first_name}
+    <div id={@id}>
+      <h2 class="text-base-content/70 pb-1">{render_slot(@label)}</h2>
+      <ul id={@id <> "-stream"} phx-update="stream" class="grid gap-2">
+        <li :for={{id, participant} <- @participants} id={id} class="flex justify-between ">
+          <div class="flex items-center gap-2">
+            <DataBlocks.avatar
+              src={participant.talker.current_profile_pic_source}
+              image_type={:thumbnail}
+              alt_text={participant.talker.full_name <> " Avatar"}
+            />
+            <span>{participant.talker.full_name}</span>
+          </div>
+          <div class="justify-self-end">
+            {render_slot(@actions, participant)}
+          </div>
         </li>
       </ul>
     </div>

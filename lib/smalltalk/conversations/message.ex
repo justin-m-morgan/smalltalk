@@ -51,9 +51,20 @@ defmodule Smalltalk.Conversations.Message do
     publish :create, ["messages", "conversation", :conversation_id]
   end
 
+  validations do
+    validate present(:content)
+  end
+
   attributes do
     uuid_v7_primary_key :id
-    attribute :content, :string
+
+    attribute :content, :string do
+      allow_nil? false
+
+      constraints min_length: 1,
+                  trim?: true,
+                  allow_empty?: false
+    end
   end
 
   relationships do

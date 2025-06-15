@@ -1,8 +1,6 @@
 defmodule SmalltalkWeb.ConversationsLive.Chat.ConversationInfo do
   use SmalltalkWeb, :html
 
-  alias Smalltalk.Uploads
-
   attr :participants, :list, required: true
   attr :display_count, :integer, default: 4, doc: "Number of Avatars to show"
 

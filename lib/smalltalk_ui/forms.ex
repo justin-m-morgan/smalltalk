@@ -212,14 +212,13 @@ defmodule SmalltalkUi.Forms do
       <textarea
         name={@name}
         id={@id}
-        value={Phoenix.HTML.Form.normalize_value("textarea", @value)}
         class={[
           "textarea textarea-md",
           @input_class || "w-full",
           @errors != [] && (@error_class || "input-error")
         ]}
         {@rest}
-      />
+      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
     </.input_group>
     """
   end
@@ -252,9 +251,12 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :id, :string
   attr :form, :map
   attr :actions_container_classes, :string, default: "flex justify-center"
   attr :rest, :global, include: ~w/phx-change phx-submit phx-target as/
+
+  attr :submit_button_size, :string, default: "btn-lg"
 
   slot :submit_button do
     attr :size, :string
@@ -263,14 +265,13 @@ defmodule SmalltalkUi.Forms do
   slot :inner_block, required: true
 
   def simple_form(assigns) do
+    assigns = assign_new(assigns, :id, fn -> assigns.form.name <> "_form" end)
+
     ~H"""
-    <.form for={@form} id={"#{@form.source.resource}-form"} {@rest}>
+    <.form for={@form} id={@id} {@rest}>
       {render_slot(@inner_block)}
       <footer class={@actions_container_classes}>
-        <Button.button
-          phx-disable-with="Saving..."
-          size={@submit_button |> List.first(%{}) |> Map.get(:size, "btn-lg")}
-        >
+        <Button.button size={@submit_button_size}>
           <%= if Enum.any?(@submit_button) do %>
             {render_slot(@submit_button)}
           <% else %>

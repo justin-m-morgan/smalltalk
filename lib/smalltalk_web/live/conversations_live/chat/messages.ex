@@ -35,7 +35,7 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.Messages do
         phx-update="stream"
         class={[
           "h-full",
-          "grid grid-cols-[3rem_1fr_3rem] gap-2",
+          "grid grid-cols-[3rem_1fr_3rem] auto-rows-min gap-2",
           "overflow-y-scroll"
         ]}
         {@rest}
