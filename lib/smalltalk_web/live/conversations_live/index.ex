@@ -3,14 +3,17 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
   use LiveStreamAsync
 
   alias Smalltalk.Conversations
+  alias SmalltalkWeb.ConversationsLive.ConversationForm
+  alias SmalltalkWeb.Components.ConversationList
 
   require Logger
 
-  @preloads [participants: [talker: [:full_name, :current_profile_pic_source]]]
+  @conversation_preloads [participants: [talker: [:full_name, :current_profile_pic_source]]]
 
   @impl true
-  def handle_params(params, _session, socket) do
+  def handle_params(params, uri, socket) do
     actor = socket.assigns.talker
+    display_mode = Map.get(params, "display_mode", "cards")
 
     form = new_conversation_form(actor)
 
@@ -18,10 +21,14 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
 
     socket =
       socket
-      |> assign(actor: actor, conversation_id: conversation_id, new_conversation_form: form)
-      |> stream_async(:conversations, fn ->
-        Conversations.get_my_conversations!(load: @preloads, actor: actor)
-      end)
+      |> assign(
+        uri: uri,
+        actor: actor,
+        conversation_id: conversation_id,
+        new_conversation_form: form,
+        display_mode: display_mode,
+        preloads: @conversation_preloads
+      )
 
     {:noreply, socket}
   end
@@ -53,144 +60,113 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {:noreply, socket}
   end
 
-  def handle_event("join_conversation", %{"conversation_id" => conversation_id}, socket) do
-    actor = socket.assigns.actor
-
-    socket =
-      case Conversations.join_conversation(conversation_id, actor: actor) do
-        {:ok, _participants} ->
-          socket
-          |> push_navigate(to: ~p"/conversations?conversation_id=#{conversation_id}")
-          |> put_flash(:success, "You joined the conversation!")
-
-        {:error, error} ->
-          Logger.error(error)
-
-          socket
-          |> put_flash(:error, "Error joining conversation.")
-      end
-
-    {:noreply, socket}
-  end
-
-  def handle_event(
-        "leave_conversation",
-        %{"conversation_id" => conversation_id},
-        socket
-      ) do
-    actor = socket.assigns.actor
-
-    socket =
-      case Conversations.leave_conversation(conversation_id, actor: actor) do
-        :ok ->
-          conversation =
-            Conversations.get_conversation!(conversation_id, load: @preloads, actor: actor)
-
-          socket
-          |> stream_delete(:conversations, conversation)
-          |> put_flash(:success, "You have left the conversation!")
-
-        {:error, error} ->
-          Logger.error(error)
-
-          socket
-          |> put_flash(:error, "Error leaving conversation.")
-      end
-
-    {:noreply, socket}
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app
       flash={@flash}
       active_tab={:conversations}
-      active_sub_tab={:mine}
+      active_sub_tab={@live_action}
       current_user={@current_user}
       talker={@talker}
     >
       <Containers.header>
-        My Conversations
+        {main_heading(@live_action)}
         <:subtitle>
-          Jump back into one of your subscribed conversations
+          {subheading(@live_action)}
         </:subtitle>
+        <:actions>
+          <ConversationList.display_mode_toggle uri={@uri} current_display_mode={@display_mode} />
+          <.new_conversation_modal_trigger />
+        </:actions>
       </Containers.header>
 
-      <.async_result :let={stream_key} assign={@conversations}>
-        <:loading>Loading...</:loading>
-        <:failed>Failed to load conversations.</:failed>
-
-        <div class="grid grid-cols-3 gap-4" phx-update="stream" id="my-conversations-stream">
-          <.conversation_card
-            :for={{dom_id, conversation} <- @streams[stream_key]}
-            id={dom_id}
-            conversation={conversation}
-          />
-        </div>
-
-        <div class="flex justify-center py-8">
-          <.new_conversation_modal_trigger />
-        </div>
-      </.async_result>
+      <.live_component
+        module={ConversationList}
+        id="conversations"
+        actor={@actor}
+        action={read_action(@live_action, @preloads, @actor)}
+        display_mode={String.to_existing_atom(@display_mode)}
+      />
 
       <Modal.container id="new_conversation_modal">
-        <Forms.simple_form form={@new_conversation_form} phx-change="validate" phx-submit="save">
-          <Forms.text_input field={@new_conversation_form[:short_name]} label="Short Name" />
-          <Forms.textarea_input field={@new_conversation_form[:description]} label="Description" />
-        </Forms.simple_form>
+        <.live_component id="new_conversation_form" module={ConversationForm} actor={@actor} />
       </Modal.container>
     </Layouts.app>
     """
   end
 
-  attr :id, :string, required: true
-  attr :conversation, Conversations.Conversation, required: true
+  def main_heading(:search), do: "Search for conversations"
+  def main_heading(_), do: "My Conversations"
 
-  def conversation_card(assigns) do
-    ~H"""
-    <Containers.card id={@id} container_class="bg-base-200">
-      <Containers.list>
-        <:item title="Short Name">{@conversation.short_name}</:item>
-        <:item title="Participants">
-          <DataBlocks.avatar_group data={@conversation.participants}>
-            <:avatar_template :let={participant}>
-              <DataBlocks.avatar
-                src={participant.talker.current_profile_pic_source}
-                image_type={:thumbnail}
-                alt_text={"#{participant.talker.full_name}"}
-              />
-            </:avatar_template>
-          </DataBlocks.avatar_group>
-        </:item>
-        <:item title="Description">{@conversation.description}</:item>
-      </Containers.list>
-      <:actions>
-        <.action_button
-          label="Leave"
-          phx-click="leave_conversation"
-          conversation_id={@conversation.id}
-        />
-        <.action_button
-          label="Go To"
-          navigate={~p"/conversations/#{@conversation.id}"}
-          conversation_id={@conversation.id}
-        />
-      </:actions>
-    </Containers.card>
-    """
+  def subheading(:public), do: "Publicly accessible conversations"
+  def subheading(:private), do: "Conversations you've been accepted into"
+  def subheading(:secret), do: "Conversations only available by invite"
+
+  def subheading(:awaiting_approval),
+    do: "Private conversations still requiring approval by an admin"
+
+  def subheading(:is_admin),
+    do: "Private conversations you are an admin for"
+
+  def subheading(:search),
+    do: "Find new conversations to join"
+
+  def read_action(:public, preloads, actor) do
+    {Conversations, :participants_by_actor!,
+     [
+       actor: actor,
+       load: [conversation: preloads],
+       query: [filter: [conversation: [type: :public]]]
+     ]}
   end
 
-  attr :label, :string, required: true
-  attr :conversation_id, :string, required: true
-  attr :rest, :global, include: ~w/navigate phx-click/
+  def read_action(:private, preloads, actor) do
+    {Conversations, :participants_by_actor!,
+     [
+       actor: actor,
+       load: [conversation: preloads],
+       query: [filter: [conversation: [type: :private]]]
+     ]}
+  end
 
-  defp action_button(assigns) do
-    ~H"""
-    <Button.button type="button" size="btn-sm" phx-value-conversation_id={@conversation_id} {@rest}>
-      {@label}
-    </Button.button>
-    """
+  def read_action(:secret, preloads, actor) do
+    {Conversations, :participants_by_actor!,
+     [
+       actor: actor,
+       load: [conversation: preloads],
+       query: [filter: [conversation: [type: :secret]]]
+     ]}
+  end
+
+  def read_action(:awaiting_approval, preloads, actor) do
+    {Conversations, :participants_by_actor!,
+     [
+       actor: actor,
+       load: [conversation: preloads],
+       query: [
+         filter: [
+           awaiting_approval?: true
+         ]
+       ]
+     ]}
+  end
+
+  def read_action(:is_admin, preloads, actor) do
+    {Conversations, :admins_by_actor!,
+     [
+       actor: actor,
+       load: [conversation: preloads]
+     ]}
+  end
+
+  def read_action(:search, preloads, actor) do
+    {Conversations, :get_conversations!,
+     [
+       query: [filter: [type: [not: [:secret]]]],
+       load: preloads,
+       actor: actor
+     ]}
   end
 
   defp new_conversation_modal_trigger(assigns) do

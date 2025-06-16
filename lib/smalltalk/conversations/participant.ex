@@ -1,4 +1,4 @@
-defmodule Smalltalk.Conversations.Participants do
+defmodule Smalltalk.Conversations.Participant do
   use Ash.Resource,
     otp_app: :smalltalk,
     domain: Smalltalk.Conversations,
@@ -6,7 +6,7 @@ defmodule Smalltalk.Conversations.Participants do
     authorizers: [Ash.Policy.Authorizer]
 
   require Ash.Query
-  alias Smalltalk.Conversations.{Conversation, Talker}
+  alias Smalltalk.Conversations.{Admin, Conversation, Talker}
 
   postgres do
     schema "conversations"
@@ -15,7 +15,16 @@ defmodule Smalltalk.Conversations.Participants do
   end
 
   actions do
-    defaults [:read]
+    read :read do
+      primary? true
+
+      filter expr(is_nil(left_at))
+    end
+
+    read :by_actor do
+      filter expr(^actor(:id) == talker_id)
+      filter expr(is_nil(left_at))
+    end
 
     read :blocked do
       argument :conversation_id, :uuid_v7
@@ -38,7 +47,7 @@ defmodule Smalltalk.Conversations.Participants do
       upsert? true
       upsert_identity :unique_talker
 
-      accept [:conversation_id]
+      accept [:conversation_id, :approved?]
 
       change set_attribute(:left_at, nil)
 
@@ -123,11 +132,23 @@ defmodule Smalltalk.Conversations.Participants do
     attribute :left_at, :datetime
     attribute :last_active, :datetime
     attribute :blocked?, :boolean, default: false
+    attribute :approved?, :boolean
   end
 
   relationships do
     belongs_to :conversation, Conversation
     belongs_to :talker, Talker
+    belongs_to :approved_by, Admin
+  end
+
+  calculations do
+    calculate :awaiting_approval?,
+              :boolean,
+              expr(conversation.type != :public && is_nil(approved?))
+
+    calculate :is_approved?,
+              :boolean,
+              expr(conversation.type == :public || approved?)
   end
 
   identities do

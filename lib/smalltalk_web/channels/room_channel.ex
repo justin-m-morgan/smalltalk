@@ -3,12 +3,8 @@ defmodule SmalltalkWeb.RoomChannel do
   alias SmalltalkWeb.Presence
 
   @impl true
-  def join("room:lobby", payload, socket) do
-    if authorized?(payload) do
-      {:ok, socket}
-    else
-      {:error, %{reason: "unauthorized"}}
-    end
+  def join("room:lobby", _payload, socket) do
+    {:ok, socket}
   end
 
   @impl true
@@ -38,7 +34,7 @@ defmodule SmalltalkWeb.RoomChannel do
   end
 
   # Add authorization logic here as required.
-  defp authorized?(_payload) do
-    true
-  end
+  # defp authorized?(_payload) do
+  #   true
+  # end
 end

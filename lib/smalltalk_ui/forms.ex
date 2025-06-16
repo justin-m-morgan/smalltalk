@@ -223,6 +223,34 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :container_class, :string, default: nil
+  attr :input_class, :string, default: nil
+  attr :field, Phoenix.HTML.FormField, required: true
+
+  attr :legend, :string, default: nil
+  attr :options, :list, required: true
+
+  attr :rest, :global, include: ~w(disabled readonly required)
+
+  def radio(assigns) do
+    assigns =
+      assigns
+      |> common_input_configuration()
+
+    ~H"""
+    <fieldset class={["fieldset w-full", @container_class]}>
+      <legend class="fieldset-label mb-1 text-lg font-bold">
+        <span>{@legend}</span>
+      </legend>
+      <label :for={{value, description} <- @options} class="label">
+        <input type="radio" name={@name} class="radio" value={value} checked={value == @value} />
+        <span>{description}</span>
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
   attr :label, :string
   attr :errors, :list
   attr :container_class, :string, default: nil
@@ -268,7 +296,7 @@ defmodule SmalltalkUi.Forms do
     assigns = assign_new(assigns, :id, fn -> assigns.form.name <> "_form" end)
 
     ~H"""
-    <.form for={@form} id={@id} {@rest}>
+    <.form for={@form} id={@id} class="grid gap-2" {@rest}>
       {render_slot(@inner_block)}
       <footer class={@actions_container_classes}>
         <Button.button size={@submit_button_size} phx-disable-with="Saving...">

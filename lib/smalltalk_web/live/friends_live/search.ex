@@ -8,16 +8,18 @@ defmodule SmalltalkWeb.FriendsLive.Search do
   require Logger
 
   @talker_preloads [:email, :inbound_friendship_requests, :outbound_friendship_requests]
-  @min_search_length 3
+  @min_search_length 1
 
   @impl true
-  def handle_params(_unsigned_params, _uri, socket) do
+  def handle_params(params, _uri, socket) do
     actor = socket.assigns.talker
+    display_mode = Map.get(params, "display_mode", "list") |> String.to_existing_atom()
 
     socket =
       socket
       |> assign(
         actor: actor,
+        display_mode: display_mode,
         min_search_length: @min_search_length,
         query_change_event: "search_query",
         query_field_name: "search_query",

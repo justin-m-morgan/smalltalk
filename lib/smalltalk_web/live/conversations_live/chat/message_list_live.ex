@@ -33,7 +33,7 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.MessageListLive do
 
   def update(assigns, socket) do
     pid = self()
-    component_id = assigns.id |> dbg()
+    component_id = assigns.id
     actor = assigns.actor
     conversation_id = assigns.conversation_id
     initial_message_load_count = assigns[:initial_message_load_count] || 5

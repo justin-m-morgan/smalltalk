@@ -15,6 +15,10 @@ defmodule Smalltalk.Conversations.Admin do
   actions do
     defaults [:read, :destroy]
 
+    read :by_actor do
+      filter expr(talker_id == ^actor(:id))
+    end
+
     read :for_conversation do
       argument :conversation_id, :uuid_v7, allow_nil?: false
       filter expr(conversation_id == ^arg(:conversation_id))

@@ -30,6 +30,22 @@ defmodule SmalltalkUi.DataBlocks do
     """
   end
 
+  slot :inner_block
+
+  def avatar_placeholder(assigns) do
+    ~H"""
+    <div class="avatar avatar-placeholder">
+      <%= if Enum.any?(@inner_block) do %>
+        {render_slot(@inner_block)}
+      <% else %>
+        <div class="bg-base-100 p-2 rounded-full">
+          <SmalltalkUi.Icon.icon name="hero-user" class="size-6" />
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   attr :display_count, :integer, default: 3
   attr :data, :list, required: true
   attr :size, :string, default: "size-8"
@@ -50,11 +66,11 @@ defmodule SmalltalkUi.DataBlocks do
         {render_slot(@avatar_template, item)}
       <% end %>
 
-      <div :if={@remaining_count > 0} class="avatar avatar-placeholder">
+      <.avatar_placeholder :if={@remaining_count > 0}>
         <div class={["bg-neutral text-neutral-content", @size]}>
           <span>+{@remaining_count}</span>
         </div>
-      </div>
+      </.avatar_placeholder>
     </div>
     """
   end

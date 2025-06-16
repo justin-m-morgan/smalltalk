@@ -40,7 +40,7 @@ defmodule Smalltalk.Conversations do
       define :mark_message_as_read, action: :mark_as_read
     end
 
-    resource Smalltalk.Conversations.Participants do
+    resource Smalltalk.Conversations.Participant do
       define :join_conversation, action: :join, args: [:conversation_id]
       define :leave_conversation, action: :leave, args: [:conversation_id]
       define :update_last_active, action: :last_active
@@ -61,6 +61,8 @@ defmodule Smalltalk.Conversations do
         get_by_identity: :unique_talker
 
       define :unblock_participant, action: :unblock
+
+      define :participants_by_actor, action: :by_actor
     end
 
     resource Smalltalk.Conversations.ProfilePic do
@@ -81,6 +83,7 @@ defmodule Smalltalk.Conversations do
     end
 
     resource Smalltalk.Conversations.Admin do
+      define :admins_by_actor, action: :by_actor
       define :admins_for_conversation, action: :for_conversation, args: [:conversation_id]
     end
   end

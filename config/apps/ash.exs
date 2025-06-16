@@ -13,6 +13,7 @@ config :ash,
   read_action_after_action_hooks_in_order?: true,
   bulk_actions_default_to_errors?: true,
   custom_types: [
+    conversation_type: Conversations.ConversationType,
     friendship_request_status: Conversations.FriendshipRequestStatus,
     image_tag: Uploads.ImageTag,
     image_format: Uploads.ImageFormat

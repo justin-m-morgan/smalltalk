@@ -101,8 +101,12 @@ defmodule SmalltalkUi.Containers do
     <ul class="list">
       <li :for={item <- @item} class="list-row">
         <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
+          <div class="font-bold">
+            {item.title}
+          </div>
+          <div class="text-xl font-thin">
+            {render_slot(item)}
+          </div>
         </div>
       </li>
     </ul>

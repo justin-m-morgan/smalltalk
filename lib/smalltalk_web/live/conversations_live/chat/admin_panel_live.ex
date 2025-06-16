@@ -38,9 +38,8 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.AdminPanelLive do
     actor = socket.assigns.actor
     conversation_id = socket.assigns.conversation_id
 
-    dbg(actor)
-
-    Conversations.get_participant!(participant_id, actor: actor)
+    participant_id
+    |> Conversations.get_participant!(actor: actor)
     |> Conversations.unblock_participant!(%{}, actor: actor)
 
     socket =

@@ -6,9 +6,32 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
   alias SmalltalkWeb.ConversationsLive.Chat
   alias SmalltalkWeb.Presence
 
-  @talker_preloads [:full_name, :current_profile_pic_source, :profile]
+  @impl true
+  def mount(%{"conversation_id" => conversation_id}, _session, socket) do
+    socket =
+      case Conversations.get_participant_by_actor_conversation(
+             conversation_id,
+             socket.assigns.talker.id,
+             load: [:is_approved?],
+             actor: socket.assigns.talker
+           ) do
+        {:ok, %{is_approved?: true}} ->
+          socket
+
+        _ ->
+          socket
+          |> put_flash(
+            :error,
+            "Your conversation is still pending approval. Please wait until it's approved before continuing."
+          )
+          |> redirect(to: ~p[/conversations/])
+      end
+
+    {:ok, socket}
+  end
 
   @impl true
+  @spec handle_params(map(), any(), any()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_params(%{"conversation_id" => conversation_id}, _uri, socket) do
     actor = socket.assigns.talker
 

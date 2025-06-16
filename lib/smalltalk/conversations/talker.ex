@@ -11,7 +11,7 @@ defmodule Smalltalk.Conversations.Talker do
     FriendshipRequest,
     Profile,
     ProfilePic,
-    Participants,
+    Participant,
     ReadReceipt,
     Talker
   }
@@ -80,7 +80,7 @@ defmodule Smalltalk.Conversations.Talker do
     has_many :read_receipts, ReadReceipt
 
     many_to_many :conversations, Conversation do
-      through Participants
+      through Participant
       source_attribute_on_join_resource :talker_id
       destination_attribute_on_join_resource :conversation_id
     end

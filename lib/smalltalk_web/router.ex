@@ -57,10 +57,17 @@ defmodule SmalltalkWeb.Router do
       live "/friends/search", FriendsLive.Search
       live "/friends/requests", FriendsLive.Requests
 
-      live "/conversations", ConversationsLive.Index, :mine
-      live "/conversations/search", ConversationsLive.Search, :search
+      live "/conversations", ConversationsLive.Index, :public
+      live "/conversations/public", ConversationsLive.Index, :public
+      live "/conversations/private", ConversationsLive.Index, :private
+      live "/conversations/secret", ConversationsLive.Index, :secret
+      live "/conversations/awaiting_approval", ConversationsLive.Index, :awaiting_approval
+      live "/conversations/is_admin", ConversationsLive.Index, :is_admin
+      live "/conversations/search", ConversationsLive.Index, :search
+
       live "/conversations/new", ConversationsLive.Search, :search
       live "/conversations/lobby", ConversationsLive.Lobby
+
       live "/conversations/:conversation_id", ConversationsLive.Chat
       live "/conversations/:conversation_id/admin", ConversationsLive.Chat.Admin
     end

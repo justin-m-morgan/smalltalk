@@ -147,10 +147,22 @@ defmodule SmalltalkLayouts.Layouts do
             ]
           },
           conversations: %{
-            to: ~p"/conversations/",
+            to: ~p"/conversations/public",
             sub_menu: [
-              mine: %{
-                to: ~p"/conversations/"
+              public: %{
+                to: ~p"/conversations/public"
+              },
+              private: %{
+                to: ~p"/conversations/private"
+              },
+              secret: %{
+                to: ~p"/conversations/secret"
+              },
+              awaiting_approval: %{
+                to: ~p"/conversations/awaiting_approval"
+              },
+              is_admin: %{
+                to: ~p"/conversations/is_admin"
               },
               lobby: %{
                 to: ~p"/conversations/lobby"

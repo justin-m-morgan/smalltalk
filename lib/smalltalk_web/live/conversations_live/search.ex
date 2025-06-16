@@ -3,6 +3,7 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
   use LiveStreamAsync
 
   alias Smalltalk.Conversations
+  alias SmalltalkWeb.Components.ConversationList
 
   require Logger
 
@@ -21,6 +22,17 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
       end)
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_params(params, uri, socket) do
+    display_mode = Map.get(params, "display_mode", "cards")
+
+    socket =
+      socket
+      |> assign(display_mode: display_mode, uri: uri)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -104,7 +116,7 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
     <Layouts.app
       flash={@flash}
       active_tab={:conversations}
-      active_sub_tab={:search}
+      active_sub_tab={:search_for_new}
       current_user={@current_user}
       talker={@talker}
     >
@@ -113,22 +125,25 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
         <:subtitle>
           Search conversations by keyword or user.
         </:subtitle>
+        <:actions>
+          <ConversationList.display_mode_toggle current_display_mode={@display_mode} uri={@uri} />
+          <.new_conversation_modal_trigger />
+        </:actions>
       </Containers.header>
 
-      <.async_result :let={stream_key} assign={@conversations}>
-        <:loading>Loading...</:loading>
-        <:failed>Failed to load conversations.</:failed>
-
-        <.table rows={@streams[stream_key]} actor_id={@actor.id}>
-          <:modal_trigger>
-            <.new_conversation_modal_trigger />
-          </:modal_trigger>
-        </.table>
-
-        <div class="flex justify-center py-8">
-          <.new_conversation_modal_trigger />
-        </div>
-      </.async_result>
+      <.live_component
+        module={ConversationList}
+        id="conversations"
+        actor={@actor}
+        action={
+          {Conversations, :get_conversations!,
+           [
+             query: [filter: [type: [not: [:secret]]]],
+             load: [participants: [talker: [:full_name, :current_profile_pic_source]]]
+           ]}
+        }
+        display_mode={String.to_existing_atom(@display_mode)}
+      />
 
       <Modal.container id="new_conversation_modal">
         <Forms.simple_form form={@new_conversation_form} phx-change="validate" phx-submit="save">
@@ -136,89 +151,26 @@ defmodule SmalltalkWeb.ConversationsLive.Search do
           <Forms.textarea_input field={@new_conversation_form[:description]} label="Description" />
         </Forms.simple_form>
       </Modal.container>
-
-      <%!-- <.live_component
-        module={ConversationList}
-        id="conversations"
-        actor={@actor}
-        action={:get_conversations!}
-        preloads={[participants: [talker: [:full_name, :current_profile_pic_source]]]}
-      /> --%>
     </Layouts.app>
     """
   end
 
-  attr :actor_id, :string, required: true
+  def display_mode_toggle(assigns) do
+    next_display_mode = if assigns.current_display_mode == "table", do: "cards", else: "table"
+    checked = assigns.current_display_mode == "cards"
 
-  attr :rows, Phoenix.LiveView.LiveStream, required: true
-  slot :modal_trigger, required: true
+    assigns =
+      assign(assigns,
+        patch: ~p[/conversations/search?display_mode=#{next_display_mode}],
+        checked: checked
+      )
 
-  defp table(assigns) do
     ~H"""
-    <Table.table id="conversations" rows={@rows}>
-      <:col :let={{_id, conversation}} label="Short Name">{conversation.short_name}</:col>
-      <:col :let={{_id, conversation}} label="Description">{conversation.description}</:col>
-      <:col :let={{_id, conversation}} label="Participants">
-        <DataBlocks.avatar_group data={conversation.participants}>
-          <:avatar_template :let={participant}>
-            <DataBlocks.avatar
-              size="size-8"
-              src={participant.talker.current_profile_pic_source}
-              image_type={:thumbnail}
-              alt_text={"#{participant.talker.full_name}"}
-            />
-          </:avatar_template>
-        </DataBlocks.avatar_group>
-      </:col>
-      <:action :let={{_dom_id, conversation}}>
-        <%= if @actor_id in Enum.map(conversation.participants, & &1.talker_id) do %>
-          <Button.button type="button" size="btn-sm" navigate={~p"/conversations/#{conversation.id}"}>
-            Go To
-          </Button.button>
-          <Button.button
-            type="button"
-            size="btn-sm"
-            phx-click="leave_conversation"
-            phx-value-conversation_id={conversation.id}
-          >
-            Leave
-          </Button.button>
-        <% else %>
-          <Button.button
-            type="button"
-            size="btn-sm"
-            phx-click="join_conversation"
-            phx-value-conversation_id={conversation.id}
-          >
-            Join
-          </Button.button>
-        <% end %>
-      </:action>
-      <:empty_results>
-        <div class="flex flex-col items-center gap-16">
-          <span>No Conversations</span>
-          {render_slot(@modal_trigger)}
-        </div>
-      </:empty_results>
-    </Table.table>
-    """
-  end
-
-  attr :label, :string, required: true
-  attr :click_event, :any, required: true
-  attr :conversation_id, :string, required: true
-  attr :rest, :global, include: ~w/navigate/
-
-  defp action_button(assigns) do
-    ~H"""
-    <Button.button
-      type="button"
-      size="btn-sm"
-      phx-click={@click_event}
-      phx-value-conversation_id={@conversation_id}
-    >
-      {@label}
-    </Button.button>
+    <label class="toggle toggle-xl h-full w-18 text-base-content" phx-click={JS.patch(@patch)}>
+      <input type="checkbox" checked={@checked} />
+      <Icon.icon name="hero-list-bullet" class="size-8" />
+      <Icon.icon name="hero-square-2-stack" class="size-8" />
+    </label>
     """
   end
 
