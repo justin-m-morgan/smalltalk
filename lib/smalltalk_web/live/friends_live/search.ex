@@ -8,7 +8,6 @@ defmodule SmalltalkWeb.FriendsLive.Search do
   require Logger
 
   @talker_preloads [:email, :inbound_friendship_requests, :outbound_friendship_requests]
-  @min_search_length 1
 
   @impl true
   def handle_params(params, _uri, socket) do
@@ -20,18 +19,13 @@ defmodule SmalltalkWeb.FriendsLive.Search do
       |> assign(
         actor: actor,
         display_mode: display_mode,
-        min_search_length: @min_search_length,
+        limit: 20,
         query_change_event: "search_query",
         query_field_name: "search_query",
         send_friend_request_event: "send_friend_request",
         send_friend_request_key: "talker_id"
       )
-      |> stream_async(
-        :friends,
-        fn -> load_friend_candidates("", actor) end,
-        limit: 20,
-        replace: true
-      )
+      |> stream_async_friends()
 
     {:noreply, socket}
   end
@@ -40,20 +34,11 @@ defmodule SmalltalkWeb.FriendsLive.Search do
   def handle_event(event, params, socket)
       when event == socket.assigns.query_change_event do
     query = Map.get(params, socket.assigns.query_field_name)
-    actor = socket.assigns.actor
-    min_search_length = socket.assigns.min_search_length
 
     socket =
-      stream_async(
+      stream_async_friends(
         socket,
-        :friends,
-        fn ->
-          if String.length(query) < min_search_length,
-            do: [],
-            else: load_friend_candidates(query, actor)
-        end,
-        limit: 20,
-        replace: true
+        query
       )
 
     {:noreply, socket}
@@ -82,6 +67,31 @@ defmodule SmalltalkWeb.FriendsLive.Search do
     {:noreply, socket}
   end
 
+  defp stream_async_friends(socket, query \\ "") do
+    limit = socket.assigns.limit
+    actor = socket.assigns.actor
+
+    stream_async(
+      socket,
+      :friends,
+      fn ->
+        query = query |> String.trim()
+
+        filter_input =
+          if String.length(query) > 0,
+            do: [email: [ilike: query <> "%"]],
+            else: []
+
+        Conversations.all_talkers!(
+          query: [filter_input: filter_input, default_sort: [:email], limit: limit],
+          load: @talker_preloads,
+          actor: actor
+        )
+      end,
+      replace: true
+    )
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -100,7 +110,6 @@ defmodule SmalltalkWeb.FriendsLive.Search do
             <.search_form
               query_change_event={@query_change_event}
               query_field_name={@query_field_name}
-              min_search_length={@min_search_length}
             />
           </:actions>
         </Containers.header>
@@ -162,18 +171,17 @@ defmodule SmalltalkWeb.FriendsLive.Search do
 
   attr :query_change_event, :string, required: true
   attr :query_field_name, :string, required: true
-  attr :min_search_length, :integer, required: true
 
   def search_form(assigns) do
     ~H"""
     <form phx-change={@query_change_event}>
       <fieldset class="fieldset flex flex-col">
         <label class="label" for={@query_field_name}>
-          Search by email (min. {@min_search_length} characters)
+          Search by email
         </label>
         <input
           id={@query_field_name}
-          phx-debounce={500}
+          phx-debounce={200}
           type="text"
           name={@query_field_name}
           class="input"
@@ -195,16 +203,5 @@ defmodule SmalltalkWeb.FriendsLive.Search do
       Enum.any?(requests, &(&1.status == :accepted)) -> :friends
       true -> :requested
     end
-  end
-
-  defp load_friend_candidates(query, actor) do
-    if String.length(query) < @min_search_length,
-      do: [],
-      else:
-        Conversations.all_talkers!(
-          query: [filter: [email: [ilike: query <> "%"]], sort: [:email]],
-          load: @talker_preloads,
-          actor: actor
-        )
   end
 end

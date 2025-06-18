@@ -75,7 +75,7 @@ defmodule SmalltalkUi.Table do
         </tr>
 
         <tr class="hidden only:table-row">
-          <td colspan="100%">
+          <td colspan={length(@col) + 1}>
             <.empty_results>
               <%= if Enum.any?(@empty_results) do %>
                 {render_slot(@empty_results)}

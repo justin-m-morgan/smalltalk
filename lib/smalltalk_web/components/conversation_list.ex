@@ -11,20 +11,13 @@ defmodule SmalltalkWeb.Components.ConversationList do
   @impl true
   def update(assigns, socket) do
     actor = assigns.actor
-    {module, func, args} = assigns.action
 
     socket =
       socket
       |> assign(assigns)
       |> assign(actor: actor)
       |> assign_new(:display_mode, fn -> :table end)
-      |> stream_async(:conversations, fn ->
-        apply(module, func, [%{}, args])
-        |> Enum.map(fn
-          %Conversations.Conversation{} = c -> c
-          tangential_resource -> tangential_resource.conversation
-        end)
-      end)
+      |> stream_async_conversations()
 
     {:ok, socket}
   end
@@ -111,11 +104,62 @@ defmodule SmalltalkWeb.Components.ConversationList do
     {:noreply, socket}
   end
 
+  def handle_event("search_conversations", %{"query" => query}, socket) do
+    socket =
+      socket
+      |> stream_async_conversations(query: query)
+
+    {:noreply, socket}
+  end
+
+  def stream_async_conversations(socket, opts \\ []) do
+    query = opts[:query] && "%#{opts[:query]}%"
+    {module, func, args} = socket.assigns.action
+
+    {path_to_conversation, args} =
+      Keyword.pop!(args, :path_to_conversation)
+
+    default_sort = Enum.join(path_to_conversation ++ [:short_name], ".")
+
+    filter_input =
+      if query,
+        do:
+          [
+            [short_name: [ilike: query]],
+            [description: [ilike: query]]
+          ]
+          |> Enum.map(fn filter ->
+            Enum.reduce(path_to_conversation, filter, fn key, acc ->
+              [{key, acc}]
+            end)
+          end)
+          |> then(&[or: &1]),
+        else: []
+
+    dbg(filter_input)
+
+    args =
+      put_in(args, [:query],
+        default_sort: default_sort,
+        filter_input: filter_input
+      )
+      |> dbg()
+
+    stream_async(socket, :conversations, fn ->
+      apply(module, func, [%{}, args])
+      |> Enum.map(fn
+        %Conversations.Conversation{} = c -> c
+        tangential_resource -> tangential_resource.conversation
+      end)
+    end)
+  end
+
   slot :actions
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="grid gap-4">
+      <.search_form phx-target={@myself} phx-change="search_conversations" />
       <.async_result :let={stream_key} assign={@conversations}>
         <:loading>Loading...</:loading>
         <:failed>Failed to load conversations.</:failed>
@@ -254,6 +298,25 @@ defmodule SmalltalkWeb.Components.ConversationList do
         </div>
       </:empty_results>
     </Table.table>
+    """
+  end
+
+  attr :rest, :global, include: ~w/phx-change phx-target/
+
+  defp search_form(assigns) do
+    ~H"""
+    <form {@rest}>
+      <label class="label grid w-96">
+        <span>Search conversations by name or description...</span>
+        <input
+          class="input w-full"
+          type="text"
+          name="query"
+          phx-debounce={300}
+          placeholder="Search for conversations..."
+        />
+      </label>
+    </form>
     """
   end
 

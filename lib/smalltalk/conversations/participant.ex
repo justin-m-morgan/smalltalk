@@ -136,7 +136,7 @@ defmodule Smalltalk.Conversations.Participant do
   end
 
   relationships do
-    belongs_to :conversation, Conversation
+    belongs_to :conversation, Conversation, public?: true
     belongs_to :talker, Talker
     belongs_to :approved_by, Admin
   end

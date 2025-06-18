@@ -44,9 +44,9 @@ defmodule Smalltalk.Conversations.Conversation do
 
   attributes do
     uuid_v7_primary_key :id
-    attribute :short_name, :string
-    attribute :description, :string
-    attribute :type, :conversation_type, default: :public
+    attribute :short_name, :string, public?: true
+    attribute :description, :string, public?: true
+    attribute :type, :conversation_type, default: :public, public?: true
   end
 
   relationships do

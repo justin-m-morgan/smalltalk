@@ -116,6 +116,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :participants_by_actor!,
      [
        actor: actor,
+       path_to_conversation: [:conversation],
        load: [conversation: preloads],
        query: [filter: [conversation: [type: :public]]]
      ]}
@@ -125,6 +126,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :participants_by_actor!,
      [
        actor: actor,
+       path_to_conversation: [:conversation],
        load: [conversation: preloads],
        query: [filter: [conversation: [type: :private]]]
      ]}
@@ -134,6 +136,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :participants_by_actor!,
      [
        actor: actor,
+       path_to_conversation: [:conversation],
        load: [conversation: preloads],
        query: [filter: [conversation: [type: :secret]]]
      ]}
@@ -143,6 +146,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :participants_by_actor!,
      [
        actor: actor,
+       path_to_conversation: [:conversation],
        load: [conversation: preloads],
        query: [
          filter: [
@@ -156,6 +160,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :admins_by_actor!,
      [
        actor: actor,
+       path_to_conversation: [:conversation],
        load: [conversation: preloads]
      ]}
   end
@@ -164,6 +169,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {Conversations, :get_conversations!,
      [
        query: [filter: [type: [not: [:secret]]]],
+       path_to_conversation: [],
        load: preloads,
        actor: actor
      ]}
