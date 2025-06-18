@@ -1,0 +1,22 @@
+# Ash Phoenix Forms
+
+## Section
+
+```elixir
+alias Smalltalk.Conversations.Conversation
+
+```
+
+```elixir
+IEx.Helpers.recompile()
+
+form =
+  Conversation
+  |> AshPhoenix.FilterForm.new()
+  |> AshPhoenix.FilterForm.add_predicate(:type, :in, [])
+  |> AshPhoenix.FilterForm.add_predicate(:is_admin?, :eq, false)
+  |> Phoenix.Component.to_form()
+
+# |> AshPhoenix.FilterForm.validate(%{field: :type, operator: :in, value: [:public, :private]})
+# |> then(&AshPhoenix.FilterForm.filter!(Conversation, &1))
+```

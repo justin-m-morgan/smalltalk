@@ -18,6 +18,13 @@ defmodule Smalltalk.Conversations.Conversation do
 
     read :mine do
       filter expr(participants.talker_id == ^actor(:id))
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
     end
 
     create :create do
@@ -54,8 +61,39 @@ defmodule Smalltalk.Conversations.Conversation do
 
     has_many :participants, Participant do
       filter expr(is_nil(left_at))
+      public? true
     end
 
-    has_many :admins, Admin
+    has_many :admins, Admin, public?: true
+  end
+
+  calculations do
+    calculate :approved?,
+              :boolean,
+              expr(participants.talker_id == ^actor(:id) && participants.approved?),
+              public?: true
+
+    calculate :awaiting_approval?,
+              :boolean,
+              expr(participants.talker_id == ^actor(:id) && participants.awaiting_approval?),
+              public?: true
+
+    calculate :status,
+              :atom,
+              expr(
+                cond do
+                  awaiting_approval? -> :awaiting_approval
+                  approved? -> :approved
+                  approved? == false -> :rejected
+                end
+              ),
+              public?: true
+  end
+
+  aggregates do
+    exists :is_admin?, :admins do
+      filter expr(talker_id == ^actor(:id))
+      public? true
+    end
   end
 end

@@ -36,6 +36,6 @@ defmodule Smalltalk.Conversations.Admin do
 
   relationships do
     belongs_to :conversation, Conversation
-    belongs_to :talker, Talker
+    belongs_to :talker, Talker, public?: true
   end
 end

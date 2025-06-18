@@ -1,8 +1,8 @@
 defmodule SmalltalkWeb.FriendsLive.Index do
   use SmalltalkWeb, :live_view
-  use LiveStreamAsync
 
   alias Smalltalk.Conversations
+  alias SmalltalkWeb.Components.EasyTable
 
   require Logger
 
@@ -12,9 +12,6 @@ defmodule SmalltalkWeb.FriendsLive.Index do
     socket =
       socket
       |> assign(actor: actor)
-      |> stream_async(:friends, fn ->
-        Conversations.all_friends!(load: [:email, :profile], actor: actor)
-      end)
 
     {:ok, socket}
   end
@@ -61,10 +58,49 @@ defmodule SmalltalkWeb.FriendsLive.Index do
           <:actions></:actions>
         </Containers.header>
 
-        <.async_result :let={stream_key} assign={@friends}>
-          <:loading>Loading Friends...</:loading>
-          <.table rows={@streams[stream_key]} id="friends-table" table_title="Friends" />
-        </.async_result>
+        <.live_component
+          id="friends-table"
+          module={EasyTable}
+          resource={Smalltalk.Conversations.Talker}
+          read_action={:friend}
+          opts={[actor: @talker, load: [:email, :full_name, :current_profile_pic_source]]}
+          default_sort={{:full_name, :asc}}
+          search_pattern={fn query -> [contains: query] end}
+          actor={@talker}
+          striped?={true}
+          limit={15}
+          size="table-xl"
+        >
+          <:caption>
+            Friends
+          </:caption>
+
+          <:col :let={friend} label="Name" sort_key={:full_name}>
+            <div class="grid items-center grid-cols-[40px_1fr] gap-2">
+              <DataBlocks.avatar
+                src={friend.current_profile_pic_source}
+                image_type={:thumbnail}
+                alt_text={friend.full_name <> " Profile Pic"}
+              />
+
+              {friend.full_name}
+            </div>
+          </:col>
+          <:col :let={friend} label="Email" sort_key={:email}>
+            {friend.email}
+          </:col>
+
+          <:action :let={{dom_id, friend}}>
+            <Button.button
+              type="button"
+              phx-click="unfriend"
+              phx-value-talker_id={friend.id}
+              phx-value-dom_id={dom_id}
+            >
+              Unfriend
+            </Button.button>
+          </:action>
+        </.live_component>
       </div>
     </Layouts.app>
     """

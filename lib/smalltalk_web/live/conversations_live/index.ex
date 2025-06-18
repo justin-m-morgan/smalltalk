@@ -4,11 +4,18 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
 
   alias Smalltalk.Conversations
   alias SmalltalkWeb.ConversationsLive.ConversationForm
-  alias SmalltalkWeb.Components.ConversationList
+
+  alias SmalltalkWeb.Components.EasyTable
 
   require Logger
 
-  @conversation_preloads [participants: [talker: [:full_name, :current_profile_pic_source]]]
+  @conversation_preloads [
+    :is_admin?,
+    :approved?,
+    :awaiting_approval?,
+    :status,
+    participants: [talker: [:full_name, :current_profile_pic_source]]
+  ]
 
   @impl true
   def handle_params(params, uri, socket) do
@@ -27,7 +34,8 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
         conversation_id: conversation_id,
         new_conversation_form: form,
         display_mode: display_mode,
-        preloads: @conversation_preloads
+        preloads: @conversation_preloads,
+        action: read_action(socket.assigns.live_action, %{actor: actor})
       )
 
     {:noreply, socket}
@@ -60,6 +68,57 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     {:noreply, socket}
   end
 
+  def handle_event("join_conversation", %{"conversation_id" => conversation_id}, socket) do
+    actor = socket.assigns.actor
+
+    socket =
+      case Conversations.join_conversation(conversation_id, actor: actor) do
+        {:ok, _participants} ->
+          socket
+          |> push_navigate(to: ~p"/conversations?conversation_id=#{conversation_id}")
+          |> put_flash(:success, "You joined the conversation!")
+
+        {:error, error} ->
+          Logger.error(error)
+
+          socket
+          |> put_flash(:error, "Error joining conversation.")
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "leave_conversation",
+        %{"conversation_id" => conversation_id},
+        socket
+      ) do
+    actor = socket.assigns.actor
+
+    socket =
+      case Conversations.leave_conversation(conversation_id, actor: actor) do
+        :ok ->
+          conversation =
+            Conversations.get_conversation!(conversation_id,
+              load: @conversation_preloads,
+              actor: actor
+            )
+
+          socket
+          |> stream_insert(:conversations, conversation)
+          |> put_flash(:success, "You have left the conversation!")
+
+        {:error, error} ->
+          Logger.error(error)
+
+          socket
+          |> put_flash(:error, "Error leaving conversation.")
+      end
+
+    {:noreply, socket}
+  end
+
+  attr :conversation_preloads, :list, default: @conversation_preloads
   @impl true
   def render(assigns) do
     ~H"""
@@ -71,23 +130,97 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
       talker={@talker}
     >
       <Containers.header>
-        {main_heading(@live_action)}
+        {@action[:main_heading] || "My Conversations"}
         <:subtitle>
-          {subheading(@live_action)}
+          {@action[:subheading]}
         </:subtitle>
         <:actions>
-          <ConversationList.display_mode_toggle uri={@uri} current_display_mode={@display_mode} />
           <.new_conversation_modal_trigger />
         </:actions>
       </Containers.header>
 
       <.live_component
-        module={ConversationList}
-        id="conversations"
-        actor={@actor}
-        action={read_action(@live_action, @preloads, @actor)}
-        display_mode={String.to_existing_atom(@display_mode)}
-      />
+        id="conversation-table"
+        module={EasyTable}
+        resource={Conversations.Conversation}
+        display_mode="cards"
+        fixed_width_columns?={false}
+        read_action={@action[:read_action] || :mine}
+        opts={[actor: @talker, load: @conversation_preloads, filter: @action[:filter]]}
+        default_sort={{:short_name, :asc}}
+        actor={@talker}
+        striped?={true}
+        limit={15}
+        searchable_fields={[:short_name, :description]}
+        size="table-xl"
+        filters={[
+          type: %{
+            filter: %{field: :type, operation: :in},
+            options:
+              Enum.map(
+                Conversations.ConversationType.values(),
+                &{&1, Phoenix.Naming.humanize(&1)}
+              ),
+            kind: :checkbox_group,
+            default: [:public, :private, :secret]
+          },
+          is_admin?: %{
+            filter: %{field: :is_admin?, operation: :in},
+            options: [true: "Yes", false: "No"],
+            kind: :checkbox_group,
+            default: [true, false]
+          },
+          status: %{
+            filter: %{field: :status, operation: :in},
+            options:
+              Enum.map([:approved, :rejected, :awaiting_approval], &{&1, Phoenix.Naming.humanize(&1)}),
+            kind: :checkbox_group,
+            default: [:approved, :rejected, :awaiting_approval]
+          }
+        ]}
+      >
+        <:caption>
+          Conversations
+        </:caption>
+
+        <:col :let={conversation} label="Short Name" sort_key={:short_name}>
+          {conversation.short_name}
+        </:col>
+        <:col :let={conversation} label="Status">
+          <Icon.icon :if={conversation.status == :approved} name="hero-check-circle" class="size-6" />
+          <Icon.icon
+            :if={conversation.status == :rejected}
+            name="hero-hand-thumb-down"
+            class="size-6"
+          />
+          <Icon.icon :if={conversation.status == :awaiting_approval} name="hero-clock" class="size-6" />
+          <Icon.icon :if={conversation.is_admin?} name="hero-key" class="size-6" />
+        </:col>
+
+        <:col :let={conversation} label="Type" sort_key={:type}>
+          <.conversation_type_badge type={conversation.type} />
+        </:col>
+
+        <:col :let={conversation} label="Participants">
+          <DataBlocks.avatar_group data={conversation.participants}>
+            <:avatar_template :let={participant}>
+              <DataBlocks.avatar
+                size="size-8"
+                src={participant.talker.current_profile_pic_source}
+                image_type={:thumbnail}
+                alt_text={"#{participant.talker.full_name}"}
+              />
+            </:avatar_template>
+          </DataBlocks.avatar_group>
+        </:col>
+        <:action :let={{_dom_id, conversation}}>
+          <.action_button
+            :for={action <- actions(%{conversation: conversation, actor: @actor})}
+            phx-value-conversation_id={conversation.id}
+            {action}
+          />
+        </:action>
+      </.live_component>
 
       <Modal.container id="new_conversation_modal">
         <.live_component id="new_conversation_form" module={ConversationForm} actor={@actor} />
@@ -96,83 +229,35 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     """
   end
 
-  def main_heading(:search), do: "Search for conversations"
-  def main_heading(_), do: "My Conversations"
-
-  def subheading(:public), do: "Publicly accessible conversations"
-  def subheading(:private), do: "Conversations you've been accepted into"
-  def subheading(:secret), do: "Conversations only available by invite"
-
-  def subheading(:awaiting_approval),
-    do: "Private conversations still requiring approval by an admin"
-
-  def subheading(:is_admin),
-    do: "Private conversations you are an admin for"
-
-  def subheading(:search),
-    do: "Find new conversations to join"
-
-  def read_action(:public, preloads, actor) do
-    {Conversations, :participants_by_actor!,
-     [
-       actor: actor,
-       path_to_conversation: [:conversation],
-       load: [conversation: preloads],
-       query: [filter: [conversation: [type: :public]]]
-     ]}
+  def read_action(:mine, _deps) do
+    %{
+      filter: [],
+      subheading: "All my conversations"
+    }
   end
 
-  def read_action(:private, preloads, actor) do
-    {Conversations, :participants_by_actor!,
-     [
-       actor: actor,
-       path_to_conversation: [:conversation],
-       load: [conversation: preloads],
-       query: [filter: [conversation: [type: :private]]]
-     ]}
+  def read_action(:search, _deps) do
+    %{
+      read_action: :read,
+      filter: [],
+      main_heading: "Search for conversations",
+      subheading: "Find new conversations to join"
+    }
   end
 
-  def read_action(:secret, preloads, actor) do
-    {Conversations, :participants_by_actor!,
-     [
-       actor: actor,
-       path_to_conversation: [:conversation],
-       load: [conversation: preloads],
-       query: [filter: [conversation: [type: :secret]]]
-     ]}
-  end
+  def actions(deps \\ %{}) do
+    cond do
+      deps.actor.id in Enum.map(deps.conversation.participants, & &1.talker_id) ->
+        [
+          %{label: "Go To", navigate: ~p"/conversations?conversation_id=#{deps.conversation.id}"},
+          %{label: "Leave", "phx-click": "leave_conversation"}
+        ]
 
-  def read_action(:awaiting_approval, preloads, actor) do
-    {Conversations, :participants_by_actor!,
-     [
-       actor: actor,
-       path_to_conversation: [:conversation],
-       load: [conversation: preloads],
-       query: [
-         filter: [
-           awaiting_approval?: true
-         ]
-       ]
-     ]}
-  end
-
-  def read_action(:is_admin, preloads, actor) do
-    {Conversations, :admins_by_actor!,
-     [
-       actor: actor,
-       path_to_conversation: [:conversation],
-       load: [conversation: preloads]
-     ]}
-  end
-
-  def read_action(:search, preloads, actor) do
-    {Conversations, :get_conversations!,
-     [
-       query: [filter: [type: [not: [:secret]]]],
-       path_to_conversation: [],
-       load: preloads,
-       actor: actor
-     ]}
+      true ->
+        [
+          %{label: "Join", "phx-click": "join_conversation"}
+        ]
+    end
   end
 
   defp new_conversation_modal_trigger(assigns) do
@@ -185,5 +270,27 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
 
   defp new_conversation_form(actor) do
     Conversations.form_to_create_conversation(as: "new_conversation", actor: actor) |> to_form()
+  end
+
+  attr :type, :atom, values: Conversations.ConversationType.values()
+
+  defp conversation_type_badge(assigns) do
+    ~H"""
+    <Indicators.badge color={Conversations.ConversationType.badge_color(@type)}>
+      {Phoenix.Naming.humanize(@type)}
+    </Indicators.badge>
+    """
+  end
+
+  attr :label, :string, required: true
+
+  attr :rest, :global, include: ~w/navigate phx-click phx-target phx-value-conversation_id/
+
+  defp action_button(assigns) do
+    ~H"""
+    <Button.button type="button" size="btn-sm" {@rest}>
+      {@label}
+    </Button.button>
+    """
   end
 end

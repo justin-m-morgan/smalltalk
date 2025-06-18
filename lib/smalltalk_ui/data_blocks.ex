@@ -13,18 +13,25 @@ defmodule SmalltalkUi.DataBlocks do
 
   def avatar(assigns) do
     ~H"""
-    <div class={["avatar", @online_status]}>
+    <div class={["avatar", if(is_nil(@src), do: "avatar-placeholder"), @online_status]}>
       <div class={[@size, if(@rounded?, do: "rounded-full")]}>
-        <img
-          src={
-            Uploads.image_path!(
-              @src,
-              @image_type,
-              %{format: @image_format}
-            )
-          }
-          alt={@alt_text}
-        />
+        <%= if @src do %>
+          <img
+            :if={@src}
+            src={
+              Uploads.image_path!(
+                @src,
+                @image_type,
+                %{format: @image_format}
+              )
+            }
+            alt={@alt_text}
+          />
+        <% else %>
+          <div class="bg-base-100 p-2 rounded-full">
+            <SmalltalkUi.Icon.icon name="hero-user" class="size-6" />
+          </div>
+        <% end %>
       </div>
     </div>
     """

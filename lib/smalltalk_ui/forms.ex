@@ -160,6 +160,74 @@ defmodule SmalltalkUi.Forms do
     """
   end
 
+  attr :legend, :string
+  attr :class, :string, default: nil
+  attr :options, :list, required: true
+  attr :container_class, :string, default: nil
+  attr :input_class, :string, default: nil
+  attr :field, Phoenix.HTML.FormField, required: true
+  attr :rest, :global, include: ~w(disabled readonly required)
+
+  def checkbox_group(assigns) do
+    assigns =
+      assigns
+      |> common_input_configuration()
+      |> assign_new(:checked, fn ->
+        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
+      end)
+
+    ~H"""
+    <fieldset class={["fieldset mb-2 w-full", @class]}>
+      <legend :if={@legend} class="fieldset-legend">{@legend}</legend>
+
+      <label :for={{value, label} <- @options}>
+        <span class="fieldset-label">
+          <%!-- :bug: generating an extra checkbox when there are more than 2 options --%>
+          <%!-- Patch fix is to hide all but first inputs --%>
+          <input
+            type="checkbox"
+            id={@id}
+            name={@name <> "[]"}
+            value={"#{value}"}
+            checked={@value && to_string(value) in @value}
+            class={@class || "checkbox checkbox-sm hidden first:block"}
+            {@rest}
+          />{label}
+        </span>
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
+  attr :class, :string, default: nil
+  attr :multiple, :boolean, default: false
+  attr :prompt, :string, default: nil
+
+  def select(assigns) do
+    assigns =
+      assigns
+      |> common_input_configuration()
+
+    ~H"""
+    <fieldset class={["fieldset mb-2 w-full", @class]}>
+      <label>
+        <span :if={@label} class="fieldset-label mb-1">{@label}</span>
+        <select
+          id={@id}
+          name={@name}
+          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          multiple={@multiple}
+        >
+          <option :if={@prompt} value="">{@prompt}</option>
+          {Phoenix.HTML.Form.options_for_select(@options, @value)}
+        </select>
+      </label>
+      <.error :for={msg <- @errors}>{msg}</.error>
+    </fieldset>
+    """
+  end
+
   attr :container_class, :string, default: nil
   attr :input_class, :string, default: nil
   attr :field, Phoenix.HTML.FormField, required: true
@@ -285,6 +353,7 @@ defmodule SmalltalkUi.Forms do
   attr :rest, :global, include: ~w/phx-change phx-submit phx-target as/
 
   attr :submit_button_size, :string, default: "btn-lg"
+  attr :hide_actions?, :boolean, default: false
 
   slot :submit_button do
     attr :size, :string
@@ -298,7 +367,7 @@ defmodule SmalltalkUi.Forms do
     ~H"""
     <.form for={@form} id={@id} class="grid gap-2" {@rest}>
       {render_slot(@inner_block)}
-      <footer class={@actions_container_classes}>
+      <footer :if={!@hide_actions?} class={@actions_container_classes}>
         <Button.button size={@submit_button_size} phx-disable-with="Saving...">
           <%= if Enum.any?(@submit_button) do %>
             {render_slot(@submit_button)}

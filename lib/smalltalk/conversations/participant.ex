@@ -24,6 +24,13 @@ defmodule Smalltalk.Conversations.Participant do
     read :by_actor do
       filter expr(^actor(:id) == talker_id)
       filter expr(is_nil(left_at))
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
     end
 
     read :blocked do
@@ -144,7 +151,8 @@ defmodule Smalltalk.Conversations.Participant do
   calculations do
     calculate :awaiting_approval?,
               :boolean,
-              expr(conversation.type != :public && is_nil(approved?))
+              expr(conversation.type != :public && is_nil(approved?)),
+              public?: true
 
     calculate :is_approved?,
               :boolean,

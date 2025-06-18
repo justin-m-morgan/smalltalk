@@ -22,6 +22,7 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
+
 import topbar from "../vendor/topbar";
 import ChatWindow from "./hooks/chat_window";
 import ThreeDLogo from "./hooks/three_d_logo.js";

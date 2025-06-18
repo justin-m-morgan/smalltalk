@@ -31,10 +31,24 @@ defmodule Smalltalk.Conversations.FriendshipRequest do
 
     read :inbound do
       filter expr(requested_id == ^actor(:id))
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
     end
 
     read :outbound do
       filter expr(requester_id == ^actor(:id))
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
     end
 
     destroy :cancel do
@@ -91,15 +105,15 @@ defmodule Smalltalk.Conversations.FriendshipRequest do
   attributes do
     uuid_v7_primary_key :id
 
-    attribute :status, :friendship_request_status, default: :pending
+    attribute :status, :friendship_request_status, default: :pending, public?: true
     attribute :accepted_at, :utc_datetime
     attribute :rejected_at, :utc_datetime
     attribute :unfriended_at, :utc_datetime
   end
 
   relationships do
-    belongs_to :requester, Talker
-    belongs_to :requested, Talker
+    belongs_to :requester, Talker, public?: true
+    belongs_to :requested, Talker, public?: true
     belongs_to :unfriended_by, Talker
   end
 

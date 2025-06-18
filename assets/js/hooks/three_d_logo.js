@@ -18,7 +18,7 @@ export default {
     // const controls = new OrbitControls(camera, renderer.domElement);
     // controls.enableDampening = true;
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xdddddd);
     scene.add(hemiLight);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true });

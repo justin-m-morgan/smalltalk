@@ -57,15 +57,13 @@ defmodule SmalltalkWeb.Router do
       live "/friends/search", FriendsLive.Search
       live "/friends/requests", FriendsLive.Requests
 
-      live "/conversations", ConversationsLive.Index, :public
-      live "/conversations/public", ConversationsLive.Index, :public
-      live "/conversations/private", ConversationsLive.Index, :private
-      live "/conversations/secret", ConversationsLive.Index, :secret
+      live "/conversations", ConversationsLive.Index, :mine
+      live "/conversations/mine", ConversationsLive.Index, :mine
+
       live "/conversations/awaiting_approval", ConversationsLive.Index, :awaiting_approval
       live "/conversations/is_admin", ConversationsLive.Index, :is_admin
       live "/conversations/search", ConversationsLive.Index, :search
 
-      live "/conversations/new", ConversationsLive.Search, :search
       live "/conversations/lobby", ConversationsLive.Lobby
 
       live "/conversations/:conversation_id", ConversationsLive.Chat
@@ -129,8 +127,6 @@ defmodule SmalltalkWeb.Router do
 
       live_dashboard "/dashboard", metrics: SmalltalkWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
-
-      live "/test", SmalltalkWeb.TestLive
     end
   end
 end

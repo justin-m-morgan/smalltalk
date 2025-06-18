@@ -6,7 +6,9 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
 
   require Logger
 
-  @request_preloads [requested: [:email], requester: [:email]]
+  alias SmalltalkWeb.Components.EasyTable
+
+  @request_preloads [requested: [:full_name, :email], requester: [:email]]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -15,18 +17,6 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
     socket =
       socket
       |> assign(actor: actor)
-      |> stream_async(:inbound_requests, fn ->
-        Conversations.inbound_friend_requests!(
-          load: @request_preloads,
-          actor: actor
-        )
-      end)
-      |> stream_async(:outbound_requests, fn ->
-        Conversations.outbound_friend_requests!(
-          load: @request_preloads,
-          actor: actor
-        )
-      end)
 
     {:ok, socket}
   end
@@ -63,6 +53,8 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
     {:noreply, socket}
   end
 
+  attr :request_preloads, :list, default: @request_preloads
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -79,95 +71,132 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
           <:subtitle>Review Your Friend Requests</:subtitle>
           <:actions></:actions>
         </Containers.header>
-        <.async_result :let={stream_key} assign={@inbound_requests}>
-          <:loading>Loading Inbound Requests...</:loading>
-          <.table
-            actor_id={@actor.id}
-            rows={@streams[stream_key]}
-            id="inbound-requests-table"
-            table_title="Inbound Requests"
-            actions={[
-              accept: %{
-                label: "Accept",
-                icon: "hero-hand-thumb-up-solid",
-                if: fn request -> request.status == :pending end
-              },
-              reject: %{
-                label: "Reject",
-                icon: "hero-hand-thumb-down-solid",
-                if: fn request -> request.status == :pending end
-              }
-            ]}
-          />
-        </.async_result>
-        <.async_result :let={stream_key} assign={@outbound_requests}>
-          <:loading>Loading Outbound Requests...</:loading>
-          <.table
-            actor_id={@actor.id}
-            rows={@streams[stream_key]}
-            id="outbound-requests-table"
-            table_title="Outbound Requests"
-            actions={[
-              cancel: %{
-                label: "Cancel",
-                icon: "hero-x-circle-solid",
-                if: fn request -> request.status == :pending end
-              },
-              revive: %{
-                label: "Revive",
-                icon: "hero-sparkles-solid",
-                if: fn request -> request.status == :canceled end
-              }
-            ]}
-          />
-        </.async_result>
+
+        <.live_component
+          id="inbound-requests-table"
+          module={EasyTable}
+          resource={Smalltalk.Conversations.FriendshipRequest}
+          read_action={:inbound}
+          opts={[actor: @talker, load: [requester: [:full_name, :current_profile_pic_source]]]}
+          default_sort={{:id, :asc}}
+          actor={@talker}
+          striped?={true}
+          searchable_fields={[[:requester, :full_name]]}
+          limit={15}
+          size="table-xl"
+          fixed_width_columns?={false}
+        >
+          <:caption>
+            Inbound Requests
+          </:caption>
+
+          <:col :let={request} label="Full Name">
+            <DataBlocks.avatar
+              src={request.requester.current_profile_pic_source}
+              alt_text={request.requester.full_name}
+            /> {request.requester.full_name}
+          </:col>
+
+          <:col :let={request} label="Status">
+            {Phoenix.Naming.humanize(request.status)}
+          </:col>
+          <:col :let={request} label="Sent at">
+            <DataBlocks.timestamp id={"#{request.id}-timestamp"} uuid_timestamp={request.id} />
+          </:col>
+
+          <:action
+            :let={{dom_id, request}}
+            :for={
+              {key, opts} <- [
+                accept: %{
+                  label: "Accept",
+                  icon: "hero-hand-thumb-up-solid",
+                  if: fn request -> request.status == :pending end
+                },
+                reject: %{
+                  label: "Reject",
+                  icon: "hero-hand-thumb-down-solid",
+                  if: fn request -> request.status == :pending end
+                }
+              ]
+            }
+          >
+            <Button.button
+              :if={!opts[:if] || opts.if.(request)}
+              type="button"
+              phx-click={key}
+              phx-value-request_id={request.id}
+              phx-value-dom_id={dom_id}
+            >
+              <Icon.icon name={opts.icon} class="size-6" />
+              {opts.label}
+            </Button.button>
+          </:action>
+        </.live_component>
+
+        <.live_component
+          id="outbound-requests-table"
+          module={EasyTable}
+          resource={Smalltalk.Conversations.FriendshipRequest}
+          read_action={:outbound}
+          opts={[actor: @talker, load: [requested: [:full_name, :current_profile_pic_source]]]}
+          default_sort={{:id, :asc}}
+          actor={@talker}
+          striped?={true}
+          searchable_fields={[[:requested, :full_name]]}
+          limit={15}
+          size="table-xl"
+          fixed_width_columns?={false}
+        >
+          <:caption>
+            Outbound Requests
+          </:caption>
+
+          <:col :let={request} label="Full Name">
+            <DataBlocks.avatar
+              src={request.requested.current_profile_pic_source}
+              alt_text={request.requested.full_name}
+            /> {request.requested.full_name}
+          </:col>
+
+          <:col :let={request} label="Status">
+            {Phoenix.Naming.humanize(request.status)}
+          </:col>
+          <:col :let={request} label="Sent at">
+            <DataBlocks.timestamp id={"#{request.id}-timestamp"} uuid_timestamp={request.id} />
+          </:col>
+
+          <:action
+            :let={{dom_id, request}}
+            :for={
+              {key, opts} <- [
+                cancel: %{
+                  label: "Cancel",
+                  icon: "hero-x-circle-solid",
+                  if: fn request -> request.status == :pending end
+                },
+                revive: %{
+                  label: "Revive",
+                  icon: "hero-sparkles-solid",
+                  if: fn request -> request.status == :canceled end
+                }
+              ]
+            }
+          >
+            <Button.button
+              :if={!opts[:if] || opts.if.(request)}
+              type="button"
+              phx-click={key}
+              phx-value-request_id={request.id}
+              phx-value-dom_id={dom_id}
+            >
+              <Icon.icon name={opts.icon} class="size-6" />
+              {opts.label}
+            </Button.button>
+          </:action>
+        </.live_component>
       </div>
     </Layouts.app>
     """
-  end
-
-  attr :actor_id, :string, required: true
-  attr :rows, :any, required: true
-  attr :table_title, :string, required: true
-  attr :id, :string, required: true
-
-  attr :actions, :list, required: true
-
-  def table(assigns) do
-    ~H"""
-    <div>
-      <Table.table id={@id} rows={@rows} th_classes="nth-2:w-[200px]">
-        <:caption>{@table_title}</:caption>
-        <:col :let={{_dom_id, request}} label="Email">
-          {find_other_party_email(request, @actor_id)}
-        </:col>
-        <:col :let={{_dom_id, request}} label="Status">
-          {Phoenix.Naming.humanize(request.status)}
-        </:col>
-        <:col :let={{_dom_id, request}} label="Sent at">
-          {Smalltalk.UuidDatable.extract_and_format_timestamp(request.id)}
-        </:col>
-        <:action :let={{dom_id, request}}>
-          <Button.button
-            :for={{key, opts} <- @actions}
-            :if={!opts[:if] || opts.if.(request)}
-            type="button"
-            phx-click={key}
-            phx-value-request_id={request.id}
-            phx-value-dom_id={dom_id}
-          >
-            <Icon.icon name={opts.icon} class="size-6" />
-            {opts.label}
-          </Button.button>
-        </:action>
-      </Table.table>
-    </div>
-    """
-  end
-
-  defp find_other_party_email(request, actor_id) do
-    [request.requester, request.requested]
-    |> Enum.find(&(&1.id != actor_id))
-    |> Map.get(:email)
   end
 end

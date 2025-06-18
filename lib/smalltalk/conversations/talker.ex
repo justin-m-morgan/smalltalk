@@ -28,6 +28,13 @@ defmodule Smalltalk.Conversations.Talker do
     read :me
 
     read :friend do
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+
       filter expr(
                (id != ^actor(:id) &&
                   (inbound_friendship_requests.status == :accepted and
@@ -103,7 +110,10 @@ defmodule Smalltalk.Conversations.Talker do
 
   calculations do
     calculate :email, :string, expr(user.email), public?: true
-    calculate :full_name, :string, expr(profile.first_name <> " " <> profile.last_name)
+
+    calculate :full_name, :string, expr(profile.first_name <> " " <> profile.last_name),
+      public?: true
+
     calculate :current_profile_pic_source, :string, expr(current_profile_pic.original_src)
 
     calculate :is_admin?, :boolean, expr(admins.conversation_id == args(:conversation_id)) do
