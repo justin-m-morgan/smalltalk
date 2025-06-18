@@ -21,7 +21,7 @@ defmodule SmalltalkLayouts.Layouts do
     <header class="navbar px-4 sm:px-6 lg:px-8">
       <div class="flex-1">
         <.link navigate={~p"/"} class="flex-1 flex items-center gap-2">
-          <.branding secondary_text={@site_section} />
+          <.branding secondary_text={@site_section} with_logo?={false} />
         </.link>
       </div>
       <div class="flex-none">
@@ -41,14 +41,15 @@ defmodule SmalltalkLayouts.Layouts do
     """
   end
 
-  attr(:text_size, :string, default: "text-6xl")
-  attr(:secondary_text, :string, default: nil)
-  slot(:logo)
+  attr :with_logo?, :boolean, default: true
+  attr :text_size, :string, default: "text-6xl"
+  attr :secondary_text, :string, default: nil
+  slot :logo
 
   def branding(assigns) do
     ~H"""
-    <div class="flex items-center">
-      {render_slot(@logo)}
+    <div class="flex items-center gap-2">
+      <.logo :if={@with_logo?} />
       <div class={[@text_size, "font-bold"]}>
         <span>Smalltalk</span>
         <span class="text-secondary">{@secondary_text}</span>
@@ -57,8 +58,11 @@ defmodule SmalltalkLayouts.Layouts do
     """
   end
 
+  attr :size, :string, default: "w-24 h-18"
+
   def logo(assigns) do
     ~H"""
+    <div id="body" phx-hook="ThreeDLogo" class={[@size]}></div>
     """
   end
 

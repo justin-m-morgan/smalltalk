@@ -129,6 +129,8 @@ defmodule SmalltalkWeb.Router do
 
       live_dashboard "/dashboard", metrics: SmalltalkWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+
+      live "/test", SmalltalkWeb.TestLive
     end
   end
 end
