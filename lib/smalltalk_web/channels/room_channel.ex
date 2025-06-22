@@ -3,7 +3,14 @@ defmodule SmalltalkWeb.RoomChannel do
   alias SmalltalkWeb.Presence
 
   @impl true
-  def join("room:lobby", _payload, socket) do
+  def join("conversation:lobby", _payload, socket) do
+    {:ok, socket}
+  end
+
+  def join("conversation:" <> topic, _payload, socket) do
+    IO.inspect("============================================")
+    IO.inspect(topic, label: "*******************TOPIC******************")
+    IO.inspect("============================================")
     {:ok, socket}
   end
 
@@ -26,7 +33,7 @@ defmodule SmalltalkWeb.RoomChannel do
   end
 
   # It is also common to receive messages from the client and
-  # broadcast to everyone in the current topic (room:lobby).
+  # broadcast to everyone in the current topic (conversation:lobby).
   @impl true
   def handle_in("shout", payload, socket) do
     broadcast(socket, "shout", payload)

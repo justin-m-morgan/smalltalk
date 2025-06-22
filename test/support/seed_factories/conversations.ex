@@ -18,7 +18,7 @@ defmodule Smalltalk.SeedFactories.Conversations do
 
   command :create_conversation do
     param(:talker, entity: :talker)
-    param(:short_name, generate: &Faker.Lorem.sentence/0)
+    param(:short_name, generate: fn -> Faker.Lorem.sentence(4..6) end)
     param(:description, generate: &Faker.Lorem.sentence/0)
 
     resolve(fn args ->
@@ -58,6 +58,11 @@ defmodule Smalltalk.SeedFactories.Conversations do
 
     resolve(fn args ->
       {actor, args} = Map.pop(args, :talker)
+      {conversation, args} = Map.pop(args, :conversation)
+
+      args =
+        Map.put(args, :conversation_id, conversation.id)
+
       {:ok, %{message: Conversations.send_message!(args, actor: actor)}}
     end)
 

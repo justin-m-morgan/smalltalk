@@ -16,6 +16,17 @@ defmodule Smalltalk.Conversations.Conversation do
   actions do
     defaults [:read, :destroy, update: :*]
 
+    read :search do
+      filter expr(type != :secret)
+
+      pagination do
+        required? false
+        offset? true
+        keyset? true
+        countable true
+      end
+    end
+
     read :mine do
       filter expr(participants.talker_id == ^actor(:id))
 
@@ -36,9 +47,20 @@ defmodule Smalltalk.Conversations.Conversation do
       change manage_relationship(:participants, type: :create)
       change manage_relationship(:admins, type: :create)
     end
+
+    update :assign_admin do
+      require_atomic? false
+      argument :admins, :map, allow_nil?: false
+
+      change manage_relationship(:admins, type: :create, on_no_match: {:create, :assign})
+    end
   end
 
   policies do
+    policy action(:assign_admin) do
+      authorize_if relates_to_actor_via([:admins, :talker])
+    end
+
     policy always() do
       authorize_if always()
     end

@@ -51,7 +51,7 @@ defmodule SmalltalkWeb.FriendsLive.Index do
       current_user={@current_user}
       talker={@talker}
     >
-      <div class="flex flex-col gap-16">
+      <div class="flex flex-col gap-4">
         <Containers.header>
           Friends
           <:subtitle>Review Your Current Friends</:subtitle>

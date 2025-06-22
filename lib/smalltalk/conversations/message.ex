@@ -40,7 +40,10 @@ defmodule Smalltalk.Conversations.Message do
       argument :conversation_id, :uuid_v7, allow_nil?: false
 
       run fn %{arguments: %{conversation_id: conversation_id}}, _ ->
-        {:ok, "messages:conversation:#{conversation_id}"}
+        topic = "messages:conversation:#{conversation_id}"
+        Phoenix.PubSub.subscribe(Smalltalk.PubSub, topic)
+
+        {:ok, topic}
       end
     end
   end

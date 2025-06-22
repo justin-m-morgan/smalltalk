@@ -27,6 +27,7 @@ defmodule SmalltalkWeb.ConnCase do
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
+      import Phoenix.LiveViewTest
       import SmalltalkWeb.ConnCase
     end
   end
@@ -34,5 +35,22 @@ defmodule SmalltalkWeb.ConnCase do
   setup tags do
     Smalltalk.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  def log_in_user(%{conn: conn} = context) do
+    strategy = AshAuthentication.Info.strategy!(Smalltalk.Accounts.User, :password)
+
+    {:ok, user} =
+      AshAuthentication.Strategy.action(strategy, :sign_in, %{
+        email: context.user.email,
+        password: "password"
+      })
+
+    new_conn =
+      conn
+      |> Phoenix.ConnTest.init_test_session(%{})
+      |> AshAuthentication.Plug.Helpers.store_in_session(user)
+
+    %{context | conn: new_conn}
   end
 end

@@ -8,7 +8,7 @@ defmodule SmalltalkWeb.UserSocket do
 
   ## Channels
 
-  channel "room:*", SmalltalkWeb.RoomChannel
+  channel "conversation:*", SmalltalkWeb.RoomChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

@@ -14,12 +14,12 @@ defmodule Smalltalk.Conversations.CreateProfileTest do
   test "will upsert if profile already exists", context do
     updates = %{
       first_name: "NewFirstName",
-      last_name: "NewLastName"
+      last_name: "NewLastName",
+      nickname: "NewNickName"
     }
 
     assert {:ok, profile} = Smalltalk.Conversations.create_profile(updates, actor: context.talker)
     assert profile.id == context.profile.id
-    assert_maps_equal(profile, updates, [:first_name, :last_name])
-    assert_maps_equal(profile, context.profile, [:nickname])
+    assert_maps_equal(profile, updates, [:first_name, :last_name, :nickname])
   end
 end

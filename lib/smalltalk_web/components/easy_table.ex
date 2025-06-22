@@ -390,6 +390,7 @@ defmodule SmalltalkWeb.Components.EasyTable do
 
       <div>
         <Button.button
+          :if={Enum.any?(@filters)}
           class="btn"
           popovertarget={"#{@id}-filter-dropdown"}
           style={"anchor-name:--#{@id}-anchor"}

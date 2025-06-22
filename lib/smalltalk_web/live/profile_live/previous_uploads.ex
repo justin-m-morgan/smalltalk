@@ -87,7 +87,7 @@ defmodule SmalltalkWeb.ProfileLive.PreviousUploads do
     ~H"""
     <div class="grid place-items-center isolate group">
       <div class={[
-        "avatar col-start-1 row-start-1 col-end-1 row-end-1 transition-all",
+        "avatar relative col-start-1 row-start-1 col-end-1 row-end-1 transition-all",
         if(!@current?, do: "group-hover:blur-lg")
       ]}>
         <div class={["rounded-full shadow-xl", @size]}>
@@ -99,7 +99,12 @@ defmodule SmalltalkWeb.ProfileLive.PreviousUploads do
         <Icon.icon
           :if={@current?}
           name="hero-check-circle-solid"
-          class="size-24 absolute text-success"
+          class="size-24 absolute right-0 text-success"
+        />
+        <Icon.icon
+          :if={@current?}
+          name="hero-check-circle"
+          class="size-24 absolute right-0 text-white"
         />
       </div>
       <div

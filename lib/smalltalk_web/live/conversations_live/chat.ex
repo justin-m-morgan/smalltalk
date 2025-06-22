@@ -31,25 +31,17 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
   end
 
   @impl true
-  @spec handle_params(map(), any(), any()) :: {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_params(%{"conversation_id" => conversation_id}, _uri, socket) do
     actor = socket.assigns.talker
-
-    new_messages_topic =
-      Conversations.subscribe_to_new_messages!(conversation_id, actor: actor)
-
     presence_topic = "conversation:#{conversation_id}"
-
-    Process.send_after(self(), :update_last_active, 5_000)
 
     socket =
       socket
       |> assign(
         conversation_id: conversation_id,
         actor: actor,
-        new_messages_topic: new_messages_topic,
-        presence_topic: presence_topic,
-        unblock_event: "unblock_participant"
+        unblock_event: "unblock_participant",
+        presence_topic: presence_topic
       )
       |> assign_new(:active_panel, fn -> "participants" end)
       |> assign_async(:participant, fn ->
@@ -62,11 +54,22 @@ defmodule SmalltalkWeb.ConversationsLive.Chat do
          }}
       end)
 
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(Smalltalk.PubSub, new_messages_topic)
-      Presence.track_user(actor.id, %{id: actor.id}, presence_topic)
-      Presence.subscribe(presence_topic)
-    end
+    socket =
+      if connected?(socket) do
+        Process.send_after(self(), :update_last_active, 5_000)
+
+        new_messages_topic =
+          Conversations.subscribe_to_new_messages!(conversation_id, actor: actor)
+
+        Presence.track_user(actor.id, %{id: actor.id}, presence_topic)
+        Presence.subscribe(presence_topic)
+
+        assign(socket,
+          new_messages_topic: new_messages_topic
+        )
+      else
+        socket
+      end
 
     {:noreply, socket}
   end

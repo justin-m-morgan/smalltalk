@@ -57,6 +57,16 @@ defmodule Smalltalk.Conversations.FriendshipRequest do
 
     destroy :unfriend do
       soft? true
+      require_atomic? false
+
+      validate fn changeset, _context ->
+        status = Ash.Changeset.get_data(changeset, :status)
+
+        if status == :accepted,
+          do: :ok,
+          else: {:error, field: :status, message: "can only unfriend accepted requests"}
+      end
+
       change set_attribute(:status, :unfriended)
       change set_attribute(:unfriended_at, &DateTime.utc_now/0)
       change relate_actor(:unfriended_by)
@@ -115,6 +125,18 @@ defmodule Smalltalk.Conversations.FriendshipRequest do
     belongs_to :requester, Talker, public?: true
     belongs_to :requested, Talker, public?: true
     belongs_to :unfriended_by, Talker
+  end
+
+  calculations do
+    calculate :type,
+              :atom,
+              expr(
+                cond do
+                  requester_id == ^actor(:id) -> :outbound
+                  requested_id == ^actor(:id) -> :inbound
+                  true -> :unrelated
+                end
+              )
   end
 
   identities do

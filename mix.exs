@@ -11,7 +11,15 @@ defmodule Smalltalk.MixProject do
       consolidate_protocols: Mix.env() != :dev,
       aliases: aliases(),
       deps: deps(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.cobertura": :test
+      ]
     ]
   end
 
@@ -80,7 +88,8 @@ defmodule Smalltalk.MixProject do
       {:ex_aws_s3, "~> 2.0"},
       {:elixir_xml_to_map, "~> 3.1.0"},
       {:corsica, "~> 2.1.3"},
-      {:timex, "~> 3.7.12"}
+      {:timex, "~> 3.7.12"},
+      {:excoveralls, "~> 0.18", only: :test}
     ]
   end
 

@@ -14,7 +14,7 @@ defmodule Smalltalk.Conversations.GetMessagesTest do
       Conversations.send_message!(
         %{
           content: "Hello world",
-          conversation: conversation
+          conversation_id: conversation.id
         },
         actor: actor
       )

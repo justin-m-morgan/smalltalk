@@ -22,6 +22,10 @@ defmodule SmalltalkWeb.AuthOverrides do
     set :root_class, "bg-primary min-h-screen"
   end
 
+  override AshAuthentication.Phoenix.Components.Password do
+    set :toggler_class, "text-primary-content"
+  end
+
   override AshAuthentication.Phoenix.Components.HorizontalRule do
     set :text_inner_class, "text-4xl bg-base-100 rounded p-4"
     # set :text_outer_class, "bg-orange-200
@@ -35,5 +39,10 @@ defmodule SmalltalkWeb.AuthOverrides do
     set :text, "Smalltalk"
     set :text_class, "text-6xl font-bold"
     set :root_class, "flex flex-col items-center"
+  end
+
+  override AshAuthentication.Phoenix.Components.Password.Input do
+    set :input_class, "input input-xl w-full "
+    set :submit_class, "btn btn-accent btn-xl w-full"
   end
 end

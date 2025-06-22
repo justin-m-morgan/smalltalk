@@ -143,25 +143,25 @@ defmodule SmalltalkLayouts.Layouts do
               current: %{
                 to: ~p"/friends"
               },
-              search: %{
-                to: ~p"/friends/search"
-              },
               requests: %{
                 to: ~p"/friends/requests"
+              },
+              search: %{
+                to: ~p"/friends/search"
               }
             ]
           },
           conversations: %{
-            to: ~p"/conversations/public",
+            to: ~p"/conversations/mine",
             sub_menu: [
+              mine: %{
+                to: ~p"/conversations/mine"
+              },
               lobby: %{
                 to: ~p"/conversations/lobby"
               },
               search: %{
                 to: ~p"/conversations/search"
-              },
-              mine: %{
-                to: ~p"/conversations/mine"
               }
             ]
           }

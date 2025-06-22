@@ -8,7 +8,11 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
 
   alias SmalltalkWeb.Components.EasyTable
 
-  @request_preloads [requested: [:full_name, :email], requester: [:email]]
+  @request_preloads [
+    :type,
+    requested: [:full_name, :email, :current_profile_pic_source],
+    requester: [:full_name, :email, :current_profile_pic_source]
+  ]
 
   @impl true
   def mount(_params, _session, socket) do
@@ -34,14 +38,26 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
              [load: @request_preloads, actor: actor]
            ]) do
         {:ok, request} ->
+          send_update(EasyTable, %{
+            id: "active-requests-table",
+            event: :update_item,
+            payload: request
+          })
+
           socket
           |> put_flash(:success, "Request #{event}ed")
-          |> stream_insert(:inbound_requests, request)
 
         :ok ->
+          send_update(EasyTable, %{
+            id: "active-requests-table",
+            event: %{
+              name: :delete_item_by_dom_id,
+              dom_id: dom_id
+            }
+          })
+
           socket
           |> put_flash(:success, "Request #{event}ed")
-          |> stream_delete_by_dom_id(:outbound_requests, dom_id)
 
         {:error, error} ->
           Logger.error(error)
@@ -65,7 +81,7 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
       current_user={@current_user}
       talker={@talker}
     >
-      <div class="flex flex-col gap-16">
+      <div class="flex flex-col gap-4">
         <Containers.header>
           Friend Requests
           <:subtitle>Review Your Friend Requests</:subtitle>
@@ -73,11 +89,11 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
         </Containers.header>
 
         <.live_component
-          id="inbound-requests-table"
+          id="active-requests-table"
           module={EasyTable}
           resource={Smalltalk.Conversations.FriendshipRequest}
-          read_action={:inbound}
-          opts={[actor: @talker, load: [requester: [:full_name, :current_profile_pic_source]]]}
+          read_action={:read}
+          opts={[actor: @talker, load: @request_preloads]}
           default_sort={{:id, :asc}}
           actor={@talker}
           striped?={true}
@@ -87,18 +103,26 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
           fixed_width_columns?={false}
         >
           <:caption>
-            Inbound Requests
+            Friendship Requests
           </:caption>
 
           <:col :let={request} label="Full Name">
+            <% friend_candidate =
+              if request.type == :inbound,
+                do: request.requester,
+                else: request.requested %>
             <DataBlocks.avatar
-              src={request.requester.current_profile_pic_source}
-              alt_text={request.requester.full_name}
-            /> {request.requester.full_name}
+              src={friend_candidate.current_profile_pic_source}
+              alt_text={friend_candidate.full_name}
+              image_type={:thumbnail}
+            /> {friend_candidate.full_name}
           </:col>
 
           <:col :let={request} label="Status">
             {Phoenix.Naming.humanize(request.status)}
+          </:col>
+          <:col :let={request} label="Type">
+            {Phoenix.Naming.humanize(request.type)}
           </:col>
           <:col :let={request} label="Sent at">
             <DataBlocks.timestamp id={"#{request.id}-timestamp"} uuid_timestamp={request.id} />
@@ -111,74 +135,26 @@ defmodule SmalltalkWeb.FriendsLive.Requests do
                 accept: %{
                   label: "Accept",
                   icon: "hero-hand-thumb-up-solid",
-                  if: fn request -> request.status == :pending end
+                  if: fn request ->
+                    request.type == :inbound &&
+                      request.status == :pending
+                  end
                 },
                 reject: %{
                   label: "Reject",
                   icon: "hero-hand-thumb-down-solid",
-                  if: fn request -> request.status == :pending end
-                }
-              ]
-            }
-          >
-            <Button.button
-              :if={!opts[:if] || opts.if.(request)}
-              type="button"
-              phx-click={key}
-              phx-value-request_id={request.id}
-              phx-value-dom_id={dom_id}
-            >
-              <Icon.icon name={opts.icon} class="size-6" />
-              {opts.label}
-            </Button.button>
-          </:action>
-        </.live_component>
-
-        <.live_component
-          id="outbound-requests-table"
-          module={EasyTable}
-          resource={Smalltalk.Conversations.FriendshipRequest}
-          read_action={:outbound}
-          opts={[actor: @talker, load: [requested: [:full_name, :current_profile_pic_source]]]}
-          default_sort={{:id, :asc}}
-          actor={@talker}
-          striped?={true}
-          searchable_fields={[[:requested, :full_name]]}
-          limit={15}
-          size="table-xl"
-          fixed_width_columns?={false}
-        >
-          <:caption>
-            Outbound Requests
-          </:caption>
-
-          <:col :let={request} label="Full Name">
-            <DataBlocks.avatar
-              src={request.requested.current_profile_pic_source}
-              alt_text={request.requested.full_name}
-            /> {request.requested.full_name}
-          </:col>
-
-          <:col :let={request} label="Status">
-            {Phoenix.Naming.humanize(request.status)}
-          </:col>
-          <:col :let={request} label="Sent at">
-            <DataBlocks.timestamp id={"#{request.id}-timestamp"} uuid_timestamp={request.id} />
-          </:col>
-
-          <:action
-            :let={{dom_id, request}}
-            :for={
-              {key, opts} <- [
+                  if: fn request ->
+                    request.type == :inbound &&
+                      request.status == :pending
+                  end
+                },
                 cancel: %{
                   label: "Cancel",
                   icon: "hero-x-circle-solid",
-                  if: fn request -> request.status == :pending end
-                },
-                revive: %{
-                  label: "Revive",
-                  icon: "hero-sparkles-solid",
-                  if: fn request -> request.status == :canceled end
+                  if: fn request ->
+                    request.type == :outbound &&
+                      request.status == :pending
+                  end
                 }
               ]
             }

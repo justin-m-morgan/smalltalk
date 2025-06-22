@@ -48,16 +48,15 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.InputLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-4 flex">
+    <div class="p-4">
       <Forms.simple_form
         id="new-message-form"
         form={@form}
-        class="flex justify-between gap-2 grow-1"
+        class="flex justify-between items-center gap-2 grow-1"
         actions_container_classes="h-full"
         phx-target={@myself}
         phx-submit="send_message"
         phx-change="validate_message_form"
-        submit_button_size="h-full btn-xl"
       >
         <input type="hidden" name={@form[:conversation_id].name} value={@conversation_id} />
         <Forms.textarea_input
@@ -69,7 +68,12 @@ defmodule SmalltalkWeb.ConversationsLive.Chat.InputLive do
         />
 
         <:submit_button>
-          <Icon.icon name="hero-paper-airplane-solid" class="size-12" />
+          <Button.button type="submit" size="btn-xl" variant="btn-ghost">
+            <div class="flex flex-col">
+              <Icon.icon name="hero-paper-airplane-solid" class="size-12" />
+              <span>Send</span>
+            </div>
+          </Button.button>
         </:submit_button>
       </Forms.simple_form>
     </div>

@@ -28,6 +28,12 @@ defmodule Smalltalk.Conversations.Admin do
       primary? true
       change relate_actor(:talker)
     end
+
+    create :assign do
+      argument :talker, :struct, allow_nil?: false
+
+      change manage_relationship(:talker, type: :append)
+    end
   end
 
   attributes do

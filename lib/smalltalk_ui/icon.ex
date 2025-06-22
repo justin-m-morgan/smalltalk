@@ -19,12 +19,15 @@ defmodule SmalltalkUi.Icon do
       <.icon name="hero-x-mark-solid" />
       <.icon name="hero-arrow-path" class="ml-1 size-3 motion-safe:animate-spin" />
   """
-  attr(:name, :string, required: true)
-  attr(:class, :string, default: "size-4")
+  attr :name, :string, required: true
+  attr :class, :string, default: "size-4"
+  attr :tooltip_text, :string, default: nil
 
   def icon(%{name: "hero-" <> _} = assigns) do
     ~H"""
-    <span class={[@name, @class]} />
+    <div class={["inline", if(@tooltip_text, do: "tooltip")]} data-tip={@tooltip_text}>
+      <span class={[@name, @class]}></span>
+    </div>
     """
   end
 end

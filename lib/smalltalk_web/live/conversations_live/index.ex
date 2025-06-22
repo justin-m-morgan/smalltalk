@@ -75,7 +75,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
       case Conversations.join_conversation(conversation_id, actor: actor) do
         {:ok, _participants} ->
           socket
-          |> push_navigate(to: ~p"/conversations?conversation_id=#{conversation_id}")
+          |> push_navigate(to: ~p"/conversations/#{conversation_id}")
           |> put_flash(:success, "You joined the conversation!")
 
         {:error, error} ->
@@ -104,8 +104,12 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
               actor: actor
             )
 
+          send_update(EasyTable, %{
+            id: "conversation-table",
+            event: %{name: :update_item, payload: conversation}
+          })
+
           socket
-          |> stream_insert(:conversations, conversation)
           |> put_flash(:success, "You have left the conversation!")
 
         {:error, error} ->
@@ -187,14 +191,36 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
           {conversation.short_name}
         </:col>
         <:col :let={conversation} label="Status">
-          <Icon.icon :if={conversation.status == :approved} name="hero-check-circle" class="size-6" />
           <Icon.icon
-            :if={conversation.status == :rejected}
-            name="hero-hand-thumb-down"
+            :for={
+              icon <- [
+                %{
+                  if: conversation.status == :approved,
+                  tooltip_text: "Approved",
+                  name: "hero-check-circle"
+                },
+                %{
+                  if: conversation.status == :rejected,
+                  tooltip_text: "Rejected",
+                  name: "hero-hand-thumb-down"
+                },
+                %{
+                  if: conversation.status == :awaiting_approval,
+                  tooltip_text: "Awaiting Approval",
+                  name: "hero-clock"
+                },
+                %{
+                  if: conversation.is_admin?,
+                  tooltip_text: "Is Admin",
+                  name: "hero-key"
+                }
+              ]
+            }
+            :if={icon[:if]}
+            name={icon[:name]}
+            tooltip_text={icon[:tooltip_text]}
             class="size-6"
           />
-          <Icon.icon :if={conversation.status == :awaiting_approval} name="hero-clock" class="size-6" />
-          <Icon.icon :if={conversation.is_admin?} name="hero-key" class="size-6" />
         </:col>
 
         <:col :let={conversation} label="Type" sort_key={:type}>
@@ -238,7 +264,7 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
 
   def read_action(:search, _deps) do
     %{
-      read_action: :read,
+      read_action: :search,
       filter: [],
       main_heading: "Search for conversations",
       subheading: "Find new conversations to join"
@@ -249,14 +275,17 @@ defmodule SmalltalkWeb.ConversationsLive.Index do
     cond do
       deps.actor.id in Enum.map(deps.conversation.participants, & &1.talker_id) ->
         [
-          %{label: "Go To", navigate: ~p"/conversations?conversation_id=#{deps.conversation.id}"},
+          %{label: "Go To", navigate: ~p"/conversations/#{deps.conversation.id}"},
           %{label: "Leave", "phx-click": "leave_conversation"}
         ]
 
-      true ->
+      deps.actor.id not in Enum.map(deps.conversation.participants, & &1.talker_id) ->
         [
           %{label: "Join", "phx-click": "join_conversation"}
         ]
+
+      true ->
+        []
     end
   end
 

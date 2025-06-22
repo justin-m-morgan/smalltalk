@@ -42,8 +42,13 @@ defmodule SmalltalkWeb.FriendsLive.Search do
              load: [requested: @talker_preloads]
            ) do
         {:ok, request} ->
+          send_update(EasyTable, %{
+            id: "friends-table",
+            event: %{name: :update_item, payload: request}
+          })
+
           socket
-          |> stream_insert(:friends, request.requested)
+          # |> stream_insert(:friends, request.requested)
           |> put_flash(:success, "Friend request sent")
 
         {:error, error} ->

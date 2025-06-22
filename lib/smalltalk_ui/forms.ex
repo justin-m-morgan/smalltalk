@@ -91,7 +91,7 @@ defmodule SmalltalkUi.Forms do
           />{@label}
         </span>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -112,7 +112,7 @@ defmodule SmalltalkUi.Forms do
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -132,7 +132,7 @@ defmodule SmalltalkUi.Forms do
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -155,7 +155,7 @@ defmodule SmalltalkUi.Forms do
           {@rest}
         />
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -195,7 +195,7 @@ defmodule SmalltalkUi.Forms do
           />{label}
         </span>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -223,7 +223,7 @@ defmodule SmalltalkUi.Forms do
           {Phoenix.HTML.Form.options_for_select(@options, @value)}
         </select>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -246,7 +246,12 @@ defmodule SmalltalkUi.Forms do
     assigns = common_input_configuration(assigns)
 
     ~H"""
-    <.input_group label={@label} errors={@errors} container_class={@container_class}>
+    <.input_group
+      label={@label}
+      errors={@errors}
+      container_class={@container_class}
+      field_name={@name}
+    >
       <input
         type={@type}
         name={@name}
@@ -276,7 +281,12 @@ defmodule SmalltalkUi.Forms do
     assigns = common_input_configuration(assigns)
 
     ~H"""
-    <.input_group label={@label} errors={@errors} container_class={@container_class}>
+    <.input_group
+      label={@label}
+      errors={@errors}
+      container_class={@container_class}
+      field_name={@name}
+    >
       <textarea
         name={@name}
         id={@id}
@@ -314,7 +324,7 @@ defmodule SmalltalkUi.Forms do
         <input type="radio" name={@name} class="radio" value={value} checked={value == @value} />
         <span>{description}</span>
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@name}>{msg}</.error>
     </fieldset>
     """
   end
@@ -322,6 +332,7 @@ defmodule SmalltalkUi.Forms do
   attr :label, :string
   attr :errors, :list
   attr :container_class, :string, default: nil
+  attr :field_name, :string, required: true
 
   slot :inner_block, required: true
 
@@ -332,18 +343,24 @@ defmodule SmalltalkUi.Forms do
         <span :if={@label} class="fieldset-label mb-1">{@label}</span>
         {render_slot(@inner_block)}
       </label>
-      <.error :for={msg <- @errors}>{msg}</.error>
+      <.error :for={msg <- @errors} field_name={@field_name}>{msg}</.error>
     </fieldset>
     """
   end
 
   # Helper used by inputs to generate form errors
+  attr :field_name, :string, required: true
+
+  slot :inner_block, required: true
+
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
+    <div phx-feedback-for={@field_name} class="text-sm text-error  flex gap-2 items-center">
       <Icon.icon name="hero-exclamation-circle-mini" class="size-5" />
-      {render_slot(@inner_block)}
-    </p>
+      <p>
+        <span>{render_slot(@inner_block)}</span>
+      </p>
+    </div>
     """
   end
 
@@ -355,9 +372,7 @@ defmodule SmalltalkUi.Forms do
   attr :submit_button_size, :string, default: "btn-lg"
   attr :hide_actions?, :boolean, default: false
 
-  slot :submit_button do
-    attr :size, :string
-  end
+  slot :submit_button
 
   slot :inner_block, required: true
 
@@ -365,16 +380,18 @@ defmodule SmalltalkUi.Forms do
     assigns = assign_new(assigns, :id, fn -> assigns.form.name <> "_form" end)
 
     ~H"""
-    <.form for={@form} id={@id} class="grid gap-2" {@rest}>
-      {render_slot(@inner_block)}
+    <.form for={@form} id={@id} {@rest}>
+      <div class="grid gap-2 w-full">
+        {render_slot(@inner_block)}
+      </div>
       <footer :if={!@hide_actions?} class={@actions_container_classes}>
-        <Button.button size={@submit_button_size} phx-disable-with="Saving...">
-          <%= if Enum.any?(@submit_button) do %>
-            {render_slot(@submit_button)}
-          <% else %>
+        <%= if Enum.any?(@submit_button) do %>
+          {render_slot(@submit_button)}
+        <% else %>
+          <Button.button size={@submit_button_size} phx-disable-with="Saving...">
             Save {@form.source.resource |> Module.split() |> List.last() |> Phoenix.Naming.humanize()}
-          <% end %>
-        </Button.button>
+          </Button.button>
+        <% end %>
       </footer>
     </.form>
     """

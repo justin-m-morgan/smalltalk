@@ -75,7 +75,6 @@ defmodule SmalltalkWeb.Components.EasyTable.FilterForm do
               (config[:default] || [])
               |> Enum.map(&to_string/1)
               |> Enum.uniq()
-              |> dbg()
 
             _ ->
               config[:default]

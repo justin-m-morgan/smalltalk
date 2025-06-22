@@ -5,7 +5,7 @@ defmodule SmalltalkWeb.RoomChannelTest do
     {:ok, _, socket} =
       SmalltalkWeb.UserSocket
       |> socket("user_id", %{some: :assign})
-      |> subscribe_and_join(SmalltalkWeb.RoomChannel, "room_channel:lobby")
+      |> subscribe_and_join(SmalltalkWeb.RoomChannel, "conversation:lobby")
 
     %{socket: socket}
   end
@@ -15,7 +15,7 @@ defmodule SmalltalkWeb.RoomChannelTest do
     assert_reply ref, :ok, %{"hello" => "there"}
   end
 
-  test "shout broadcasts to room_channel:lobby", %{socket: socket} do
+  test "shout broadcasts to conversation:lobby", %{socket: socket} do
     push(socket, "shout", %{"hello" => "all"})
     assert_broadcast "shout", %{"hello" => "all"}
   end
