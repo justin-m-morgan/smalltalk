@@ -83,7 +83,10 @@ defmodule SmalltalkWeb.Router do
     sign_in_route register_path: "/register",
                   reset_path: "/reset",
                   auth_routes_prefix: "/auth",
-                  on_mount: [{SmalltalkWeb.LiveUserAuth, :live_no_user}],
+                  on_mount: [
+                    {SmalltalkWeb.LiveUserAuth, :live_no_user},
+                    SmalltalkWeb.Hooks.AddLogoHook
+                  ],
                   overrides: [
                     SmalltalkWeb.AuthOverrides,
                     AshAuthentication.Phoenix.Overrides.Default
@@ -91,6 +94,7 @@ defmodule SmalltalkWeb.Router do
 
     # Remove this if you do not want to use the reset password feature
     reset_route auth_routes_prefix: "/auth",
+                on_mount: [SmalltalkWeb.Hooks.AddLogoHook],
                 overrides: [
                   SmalltalkWeb.AuthOverrides,
                   AshAuthentication.Phoenix.Overrides.Default

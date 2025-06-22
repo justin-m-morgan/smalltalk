@@ -3,12 +3,13 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export default {
   mounted() {
-    const height = this.el.clientHeight;
-    const width = this.el.clientWidth;
+    this.mountLogo(this.el);
+  },
+  mountLogo(el) {
+    const height = el.clientHeight;
+    const width = el.clientWidth;
     const clock = new THREE.Clock();
     clock.start();
-
-    console.table({ height, width });
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(4, width / height, 0.1, 500);
@@ -24,7 +25,7 @@ export default {
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setSize(width, height);
 
-    this.el.appendChild(renderer.domElement);
+    el.appendChild(renderer.domElement);
 
     const loader = new GLTFLoader();
 

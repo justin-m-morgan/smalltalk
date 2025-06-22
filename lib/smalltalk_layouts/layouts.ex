@@ -49,7 +49,7 @@ defmodule SmalltalkLayouts.Layouts do
   def branding(assigns) do
     ~H"""
     <div class="flex items-center gap-2">
-      <.logo :if={@with_logo?} />
+      <.logo :if={@with_logo?} id="branding-logo" />
       <div class={[@text_size, "font-bold"]}>
         <span>Smalltalk</span>
         <span class="text-secondary">{@secondary_text}</span>
@@ -58,11 +58,12 @@ defmodule SmalltalkLayouts.Layouts do
     """
   end
 
+  attr :id, :string, default: "three-d-logo"
   attr :size, :string, default: "w-24 h-18"
 
   def logo(assigns) do
     ~H"""
-    <div id="body" phx-hook="ThreeDLogo" class={[@size]}></div>
+    <div id={@id} phx-hook="ThreeDLogo" class={[@size]}></div>
     """
   end
 
