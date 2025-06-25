@@ -1,5 +1,6 @@
 [
   import_deps: [
+    :oban,
     :ash_authentication_phoenix,
     :ash_authentication,
     :ash_postgres,
@@ -8,6 +9,7 @@
     :reactor,
     :ecto,
     :ecto_sql,
+    :patch,
     :phoenix,
     :seed_factory
   ],

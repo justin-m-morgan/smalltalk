@@ -22,7 +22,7 @@ defmodule SmalltalkUi.DataBlocks do
               Uploads.image_path!(
                 @src,
                 @image_type,
-                %{format: @image_format}
+                %{extension: @image_format}
               )
             }
             alt={@alt_text}

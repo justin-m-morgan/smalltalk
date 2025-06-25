@@ -11,12 +11,13 @@ defmodule Smalltalk.Application do
       SmalltalkWeb.Telemetry,
       Smalltalk.Repo,
       {DNSCluster, query: Application.get_env(:smalltalk, :dns_cluster_query) || :ignore},
+      {Oban, Application.fetch_env!(:smalltalk, Oban)},
       {Phoenix.PubSub, name: Smalltalk.PubSub},
       # Start a worker by calling: Smalltalk.Worker.start_link(arg)
       # {Smalltalk.Worker, arg},
       # Start to serve requests, typically the last entry
       SmalltalkWeb.Endpoint,
-      Smalltalk.Uploads.ImageProcessor,
+      # Smalltalk.Uploads.ImageProcessor,
       {AshAuthentication.Supervisor, [otp_app: :smalltalk]},
       SmalltalkWeb.Presence
     ]

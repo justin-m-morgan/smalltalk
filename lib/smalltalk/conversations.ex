@@ -78,6 +78,7 @@ defmodule Smalltalk.Conversations do
 
     resource ProfilePic do
       define :submit_profile_pic, action: :create
+      define :my_profile_pics, action: :read
     end
 
     resource ReadReceipt do

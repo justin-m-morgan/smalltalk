@@ -109,17 +109,6 @@ defmodule SmalltalkLayouts.Layouts do
           home: %{
             to: ~p"/"
           },
-          # account: %{
-          #   to: ~p"/account",
-          #   sub_menu: [
-          #     contact: %{
-          #       to: ~p"/account/contact"
-          #     },
-          #     subscription: %{
-          #       to: ~p"/account/subscription"
-          #     }
-          #   ]
-          # },
           profile: %{
             to: ~p"/profile/show",
             sub_menu: [
@@ -131,9 +120,6 @@ defmodule SmalltalkLayouts.Layouts do
               },
               upload_image: %{
                 to: ~p"/profile/upload_img"
-              },
-              previous_uploads: %{
-                to: ~p"/profile/previous_uploads"
               }
             ]
           },

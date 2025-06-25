@@ -37,7 +37,7 @@ defmodule SmalltalkWeb.Live.ProfileLive.EditTest do
       form_params = context.form_params
 
       form_params =
-        %{form_params | profile: Map.delete(form_params.profile, :first_name)} |> dbg()
+        %{form_params | profile: Map.delete(form_params.profile, :first_name)}
 
       view
       |> form(@form_selector, form_params)

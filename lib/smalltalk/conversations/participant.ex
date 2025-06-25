@@ -3,7 +3,8 @@ defmodule Smalltalk.Conversations.Participant do
     otp_app: :smalltalk,
     domain: Smalltalk.Conversations,
     data_layer: AshPostgres.DataLayer,
-    authorizers: [Ash.Policy.Authorizer]
+    authorizers: [Ash.Policy.Authorizer],
+    primary_read_warning?: false
 
   require Ash.Query
   alias Smalltalk.Conversations.{Admin, Conversation, Talker}

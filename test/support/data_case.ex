@@ -16,6 +16,8 @@ defmodule Smalltalk.DataCase do
 
   use ExUnit.CaseTemplate
 
+  require Logger
+
   using do
     quote do
       alias Smalltalk.Repo
@@ -88,5 +90,62 @@ defmodule Smalltalk.DataCase do
 
       #{Ash.Error.error_descriptions(ash_error)}
       """
+  end
+
+  def set_logger_level_info(_context) do
+    initial_logger_level = Application.fetch_env!(:logger, :level)
+    Logger.configure(level: :info)
+
+    on_exit(fn -> Logger.configure(level: initial_logger_level) end)
+  end
+
+  def start_s3_container(_context) do
+    starting_bucket = "test"
+    bind_mount_local_path = Path.join(File.cwd!(), "test/support/s3mock")
+    bind_mount_container_path = "containers3root"
+
+    config =
+      %Testcontainers.Container{image: "adobe/s3mock:latest"}
+      |> Testcontainers.Container.with_environment("initialBuckets", starting_bucket)
+      |> Testcontainers.Container.with_environment("root", bind_mount_container_path)
+      |> Testcontainers.Container.with_environment("debug", "true")
+      |> Testcontainers.Container.with_exposed_ports([9090, 9191])
+      |> Testcontainers.Container.with_bind_mount(
+        bind_mount_local_path,
+        "/#{bind_mount_container_path}"
+      )
+
+    {:ok, container} = Testcontainers.start_container(config)
+
+    Testcontainers.Container.with_waiting_strategy(
+      container,
+      Testcontainers.PortWaitStrategy.new(container.ip_address, 9090)
+    )
+
+    ExUnit.Callbacks.on_exit(fn ->
+      ExAws.S3.list_objects(starting_bucket)
+      |> ExAws.request!()
+
+      Testcontainers.stop_container(container.container_id)
+    end)
+
+    %{container: container, starting_bucket: starting_bucket}
+  end
+
+  def delete_all_bucket_objects(context, bucket \\ nil) do
+    bucket = bucket || context.starting_bucket
+
+    keys =
+      bucket
+      |> ExAws.S3.list_objects()
+      |> ExAws.stream!()
+      |> Enum.map(& &1.key)
+
+    if Enum.any?(keys) do
+      ExAws.S3.delete_all_objects(bucket, keys)
+      |> ExAws.request()
+    end
+
+    :ok
   end
 end

@@ -2,13 +2,14 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
   use SmalltalkWeb, :live_view
 
   alias Smalltalk.Conversations
-  alias Smalltalk.Uploads.ImageProcessor
+  alias Smalltalk.Uploads
+  alias SmalltalkWeb.ProfileLive.PreviousUploadsComponent
 
   require Logger
 
   @impl true
   def mount(_params, _session, socket) do
-    actor = socket.assigns.talker
+    actor = socket.assigns.current_user
     upload_key = :profile_pic
     accepted_file_types = ~w(.jpg .jpeg)
     max_file_size = 6_000_000
@@ -28,7 +29,21 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
         max_file_size: max_file_size
       )
 
+    if connected?(socket) do
+      Uploads.subscribe_to_new_images_topic(actor: actor)
+    end
+
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_info(%{event: "create_original", payload: payload}, socket) do
+    image = payload.data
+
+    # TODO: move current uploads here and update stream
+    dbg(image)
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -43,18 +58,23 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
 
   @impl true
   def handle_event("save", _params, socket) do
-    actor = socket.assigns.actor
+    talker = socket.assigns.talker
+    current_user = socket.assigns.current_user
     upload_key = socket.assigns.upload_key
 
     uploaded_files =
       consume_uploaded_entries(socket, upload_key, fn %{path: path}, _entry ->
-        s3_path =
-          ImageProcessor.upload_original_image(path, actor.user_id)
+        root_path = Uploads.create_image!(%{file_path: path}, actor: current_user).s3_root_path
 
-        Conversations.submit_profile_pic!(%{original_src: s3_path}, actor: actor)
+        Conversations.submit_profile_pic(
+          %{original_src: root_path},
+          actor: talker
+        )
 
-        {:ok, s3_path}
+        {:ok, root_path}
       end)
+
+    send_update(PreviousUploadsComponent, id: "previous-uploads", event: :profile_pic_added)
 
     socket =
       socket
@@ -83,36 +103,40 @@ defmodule SmalltalkWeb.ProfileLive.UploadImg do
       current_user={@current_user}
       talker={@talker}
     >
-      <Containers.header>
-        Profile Pic
-      </Containers.header>
-      <section>
-        <div class="grid gap-4">
-          <%!-- render each avatar entry --%>
+      <div class="grid gap-8">
+        <Containers.header>
+          Profile Pic
+        </Containers.header>
 
-          <div phx-drop-target={@uploads[@upload_key].ref} class="flex flex-col items-center gap-2">
-            <.dropzone accepted_file_types={@accepted_file_types} max_file_size={@max_file_size} />
-            <.upload_form upload_config={@uploads[@upload_key]} />
-          </div>
-          <div class="grid grid-cols-3 lg:grid-cols-4 gap-4">
-            <div class="only:flex justify-center items-center h-full hidden ">
-              <p class="text-xl font-bold">No Files Provided</p>
+        <.live_component module={PreviousUploadsComponent} id="previous-uploads" talker={@talker} />
+        <section>
+          <div class="grid gap-4">
+            <%!-- render each avatar entry --%>
+
+            <div phx-drop-target={@uploads[@upload_key].ref} class="flex flex-col items-center gap-2">
+              <.dropzone accepted_file_types={@accepted_file_types} max_file_size={@max_file_size} />
+              <.upload_form upload_config={@uploads[@upload_key]} />
             </div>
-            <Containers.card
-              :for={entry <- @uploads[@upload_key].entries}
-              container_class="bg-base-200"
-            >
-              <.upload_entry upload_config={@uploads[@upload_key]} entry={entry} />
-            </Containers.card>
+            <div class="grid grid-cols-3 lg:grid-cols-4 gap-4">
+              <div class="only:flex justify-center items-center h-full hidden ">
+                <p class="text-xl font-bold">No Files Provided</p>
+              </div>
+              <Containers.card
+                :for={entry <- @uploads[@upload_key].entries}
+                container_class="bg-base-200"
+              >
+                <.upload_entry upload_config={@uploads[@upload_key]} entry={entry} />
+              </Containers.card>
+            </div>
           </div>
-        </div>
 
-        <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
-        <p :for={err <- upload_errors(@uploads[@upload_key])} class="alert alert-warning">
-          <Icon.icon name="hero-exclamation-triangle-solid" class="size-8" />
-          {error_to_string(err)}
-        </p>
-      </section>
+          <%!-- Phoenix.Component.upload_errors/1 returns a list of error atoms --%>
+          <p :for={err <- upload_errors(@uploads[@upload_key])} class="alert alert-warning">
+            <Icon.icon name="hero-exclamation-triangle-solid" class="size-8" />
+            {error_to_string(err)}
+          </p>
+        </section>
+      </div>
     </Layouts.app>
     """
   end

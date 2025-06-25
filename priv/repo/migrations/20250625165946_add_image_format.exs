@@ -1,4 +1,4 @@
-defmodule Smalltalk.Repo.Migrations.MigrateResources2 do
+defmodule Smalltalk.Repo.Migrations.AddImageFormat do
   @moduledoc """
   Updates resources based on their most recent snapshots.
 
@@ -19,9 +19,25 @@ defmodule Smalltalk.Repo.Migrations.MigrateResources2 do
             prefix: "conversations"
           )
     end
+
+    alter table(:images, prefix: "uploads") do
+      add :format, :text, default: "webp"
+    end
+
+    alter table(:conversations, prefix: "conversations") do
+      add :type, :text, default: "public"
+    end
   end
 
   def down do
+    alter table(:conversations, prefix: "conversations") do
+      remove :type
+    end
+
+    alter table(:images, prefix: "uploads") do
+      remove :format
+    end
+
     drop constraint(:participants, "participants_approved_by_id_fkey", prefix: "conversations")
 
     alter table(:participants, prefix: "conversations") do

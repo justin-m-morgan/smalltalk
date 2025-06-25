@@ -2,6 +2,7 @@ defmodule Smalltalk.Uploads.ImageProcessor do
   use GenServer
 
   alias Smalltalk.Uploads
+  alias ExAws.S3
 
   require Logger
 
@@ -13,22 +14,7 @@ defmodule Smalltalk.Uploads.ImageProcessor do
 
   @impl GenServer
   def init(_) do
-    region = Application.fetch_env!(:ex_aws, :region)
-
-    ExAws.S3.put_bucket("images", region, %{acl: :public_read})
-    |> ExAws.request()
-    |> case do
-      {:error, {:http_error, 409, _}} ->
-        Logger.debug("`images` bucket already exists")
-        :ok
-
-      {:ok, _} ->
-        Logger.debug("Creating `images` Bucket")
-        :ok
-
-      error ->
-        Logger.error(error)
-    end
+    S3.Interface.create_bucket_if_doesnt_exist(@bucket_name)
 
     {:ok, nil}
   end
@@ -37,6 +23,7 @@ defmodule Smalltalk.Uploads.ImageProcessor do
   def handle_info({type, s3_root_path, extension, user_id}, state) do
     process_image(s3_root_path, type, type_size(type), extension)
 
+    # TODO: RECONSIDER and use handle_call instead maybe?
     Uploads.create_image!(%{
       s3_root_path: s3_root_path,
       extension: extension,
@@ -53,7 +40,7 @@ defmodule Smalltalk.Uploads.ImageProcessor do
 
   def process_image(root_path, path_suffix, size, extension) do
     original_path = root_path <> "/original"
-    new_path = root_path <> "/#{path_suffix}"
+    new_path = root_path <> "/#{path_suffix}#{extension}"
 
     @bucket_name
     |> ExAws.S3.get_object(original_path)
@@ -62,40 +49,34 @@ defmodule Smalltalk.Uploads.ImageProcessor do
     |> Image.from_binary!()
     |> Image.thumbnail!(size)
     |> Image.stream!(suffix: extension, buffer_size: 5_242_880)
-    |> ExAws.S3.upload(@bucket_name, new_path)
-    |> ExAws.request()
+    |> S3.Interface.upload!(@bucket_name, new_path)
   end
 
-  def submit_image(pid \\ __MODULE__, path, entry) do
-    GenServer.call(pid, {:submit_image, path, entry})
-  end
-
+  @spec upload_original_image(
+          binary()
+          | maybe_improper_list(
+              binary() | maybe_improper_list(any(), binary() | []) | char(),
+              binary() | []
+            ),
+          any()
+        ) :: binary()
   def upload_original_image(pid \\ __MODULE__, path, user_id) do
     s3_root_path = hash_file(path)
+    extension = ".webp"
+    s3_path = "#{s3_root_path}/original#{extension}"
 
-    # Already upserting so no "problem" but wasted work if repeated
-    already_exists? =
-      Uploads.get_image_by_path!(s3_root_path, :original, ".webp",
-        authorize?: false,
-        not_found_error?: false
-      )
-
-    unless already_exists? do
-      s3_path = "#{s3_root_path}/original"
-
-      extension = ".webp"
-
+    unless S3.Interface.already_exists?(@bucket_name, s3_path) do
       %{body: %{location: _s3_path}} =
         path
         |> Image.open!()
         |> Image.stream!(suffix: extension, buffer_size: 5_242_880)
-        |> ExAws.S3.upload(@bucket_name, s3_path)
-        |> ExAws.request!()
+        |> S3.Interface.upload!(@bucket_name, s3_path)
 
       Uploads.create_image!(%{
         s3_root_path: s3_root_path,
         extension: extension,
         type: :original,
+        format: extension,
         user_id: user_id
       })
 

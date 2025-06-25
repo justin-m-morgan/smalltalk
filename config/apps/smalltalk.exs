@@ -21,6 +21,12 @@ config :smalltalk,
     Smalltalk.Uploads
   ]
 
+config :smalltalk, Oban,
+  engine: Oban.Engines.Basic,
+  notifier: Oban.Notifiers.Postgres,
+  queues: [default: 10, image_processing: [limit: 5, dispatch_cooldown: 100]],
+  repo: Smalltalk.Repo
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -32,6 +38,7 @@ config :smalltalk, Smalltalk.Mailer, adapter: Swoosh.Adapters.Local
 
 case Mix.env() do
   :dev ->
+    config :smalltalk, token_signing_secret: "BDZWIzrye2FX0i1l8PX5tbNxPo+Wu2uM"
     # The watchers configuration can be used to run external
     # watchers to your application. For example, we can use it
     # to bundle .js and .css sources.
@@ -60,6 +67,8 @@ case Mix.env() do
     nil
 
   :test ->
+    config :smalltalk, token_signing_secret: "qi5KgbihV2wVx543goMlva/KrShLv9Xx"
     # In test we don't send emails
     config :smalltalk, Smalltalk.Mailer, adapter: Swoosh.Adapters.Test
+    config :smalltalk, Oban, testing: :manual
 end

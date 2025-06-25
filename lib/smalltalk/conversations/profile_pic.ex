@@ -19,6 +19,10 @@ defmodule Smalltalk.Conversations.ProfilePic do
       prepare build(sort: [id: :desc], limit: 1)
     end
 
+    read :mine do
+      filter expr(talker_id == ^actor(:id))
+    end
+
     create :create do
       accept [:original_src]
 

@@ -89,7 +89,11 @@ defmodule Smalltalk.MixProject do
       {:elixir_xml_to_map, "~> 3.1.0"},
       {:corsica, "~> 2.1.3"},
       {:timex, "~> 3.7.12"},
-      {:excoveralls, "~> 0.18", only: :test}
+      {:excoveralls, "~> 0.18", only: :test},
+      {:testcontainers, "~> 1.11"},
+      {:patch, "~> 0.16.0", only: [:dev, :test]},
+      {:oban, "~> 2.19"},
+      {:briefly, "~> 0.5.0"}
     ]
   end
 

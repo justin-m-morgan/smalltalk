@@ -21,4 +21,5 @@ config :ash,
 
 if Mix.env() == :dev do
   config :ash, :policies, show_policy_breakdowns?: true
+  config :ash, :pub_sub, debug?: true
 end

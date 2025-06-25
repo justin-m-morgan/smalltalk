@@ -51,7 +51,6 @@ defmodule SmalltalkWeb.Router do
       live "/profile/show", ProfileLive.Show
       live "/profile/edit", ProfileLive.Edit
       live "/profile/upload_img", ProfileLive.UploadImg
-      live "/profile/previous_uploads", ProfileLive.PreviousUploads
 
       live "/friends", FriendsLive.Index
       live "/friends/search", FriendsLive.Search

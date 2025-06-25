@@ -29,7 +29,7 @@ defmodule SmalltalkWeb.Components.Profile.ImageUpload do
   end
 
   @impl Phoenix.LiveComponent
-  @spec handle_event(<<_::32, _::_*8>>, any(), any()) :: {:noreply, any()}
+
   def handle_event("validate", _params, socket) do
     {:noreply, socket}
   end

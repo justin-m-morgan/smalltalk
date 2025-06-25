@@ -10,8 +10,15 @@ import Config
 require Logger
 
 File.ls!("config/apps")
+|> tap(fn apps ->
+  apps
+  |> Enum.map(&"apps/#{&1}")
+  |> Enum.join(", ")
+  |> then(&Logger.notice("Loading config from: #{&1}"))
+
+  apps
+end)
 |> Enum.each(fn app ->
-  Logger.debug("Loading config from apps/#{app}")
   import_config "apps/#{app}"
 end)
 

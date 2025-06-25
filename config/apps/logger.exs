@@ -5,6 +5,8 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :logger, level: :error
+
 case Mix.env() do
   :dev ->
     # Do not include metadata nor timestamps in development logs
